@@ -167,7 +167,10 @@ body{font-family:'Gaegu',cursive;background:linear-gradient(180deg,var(--sky1) 0
 .sbar-track{flex:1;background:#f0f0f0;border-radius:6px;height:11px;overflow:hidden;}
 .sbar-fill{height:100%;border-radius:6px;transition:width .8s ease;}
 .sbar-val{min-width:24px;font-family:'Jua',sans-serif;font-size:.78rem;color:#aaa;}
-/* toast */
+/* event log */
+#evLogList{max-height:340px;overflow-y:auto;scrollbar-width:thin;}
+#evLog{position:sticky;top:1rem;}
+@media(max-width:600px){#evLog{width:100%!important;position:static;}}
 .toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--a1);color:#fff;padding:.68rem 1.3rem;border-radius:50px;font-family:'Jua',sans-serif;font-size:.98rem;z-index:999;transition:transform .35s;box-shadow:0 6px 20px rgba(231,76,60,.5);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 .shake{animation:shk .4s;}
@@ -250,9 +253,21 @@ body{font-family:'Gaegu',cursive;background:linear-gradient(180deg,var(--sky1) 0
 
 <!-- EVENT -->
 <div id="s-event" class="screen">
-  <div class="ev-wrap">
-    <div class="evprog" id="evProg"></div>
-    <div class="evcard" id="evCard"></div>
+  <div style="display:flex;gap:1rem;width:100%;max-width:860px;align-items:flex-start;">
+    <!-- 왼쪽: 돌발상황 카드 -->
+    <div style="flex:1;min-width:0;">
+      <div class="evprog" id="evProg"></div>
+      <div class="evcard" id="evCard"></div>
+    </div>
+    <!-- 오른쪽: 누적 내역 -->
+    <div id="evLog" style="width:240px;flex-shrink:0;background:rgba(255,255,255,.95);border-radius:18px;padding:1rem;box-shadow:0 4px 18px rgba(0,0,0,.1);min-height:200px;">
+      <div style="font-family:'Jua',sans-serif;font-size:.95rem;color:#555;margin-bottom:.7rem;border-bottom:1.5px dashed #eee;padding-bottom:.5rem;">📋 선택 내역</div>
+      <div id="evLogList"><div style="font-size:.82rem;color:#ccc;text-align:center;padding:.8rem 0;">아직 선택이 없어요</div></div>
+      <div id="evLogTotal" style="margin-top:.7rem;border-top:1.5px dashed #eee;padding-top:.6rem;display:none;">
+        <div style="font-size:.8rem;color:#888;">현재 도시락 비용</div>
+        <div id="evLogTotalAmt" style="font-family:'Jua',sans-serif;font-size:1.1rem;color:#E67E22;"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -335,15 +350,15 @@ const EVENTS=[
   },
   {
     id:'e3',icon:'🌧️',title:'갑자기 비가 내려요!',
-    story:'예보에 없던 비가 왔어요! 샐러드나 과일컵은 비에 젖으면 먹기 힘들어요.',
-    effect:'야외에서 먹기 불편한 음식이 생겼어요.',
+    story:'예보에 없던 비가 왔어요! 모두 우산을 장만해야 해요.',
+    effect:'우산을 사면 1,000원이 추가로 들어요.',
     q:'어떻게 할까요?',
-    cA:{t:'☔ 우산 있으니까 그냥 먹을게요!',sub:'추가 지출 없음 — 그냥 유지',tag:'소비'},
-    cB:{t:'🔄 샐러드·과일 빼고 포장된 걸로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
-    applyA:G=>{ },
-    applyB:G=>{ G.bag.delete('salad'); G.bag.delete('fruit'); },
-    msgA:'그냥 먹기로 했어요! 도시락을 확인해봐요.',
-    msgB:'샐러드·과일을 뺐어요. 남은 예산으로 다시 채워보세요!',
+    cA:{t:'☔ 우산 사야지! 비 맞으면 안 되지',sub:'1,000원 추가 — 더 쓰기',tag:'소비'},
+    cB:{t:'🏃 친구 우산 같이 쓸게요',sub:'추가 지출 없음 — 절약',tag:'절약'},
+    applyA:G=>{ G.extraSpend+=1000; },
+    applyB:G=>{ },
+    msgA:'우산을 샀어요! 1,000원이 추가로 들었어요.',
+    msgB:'친구 우산을 같이 쓰기로 했어요! 돈을 아꼈어요.',
   },
   {
     id:'e4',icon:'🎁',title:'선생님이 음료수를 나눠줬어요!',
@@ -426,25 +441,26 @@ const EVENTS=[
   },
   {
     id:'e10',icon:'🎊',title:'할머니 보너스 용돈!',
-    story:'할머니가 "소풍 잘 다녀와라!" 하며 1,000원을 주셨어요!',
-    effect:'1,000원이 생겼어요!',
+    story:'할머니가 "소풍 잘 다녀와라!" 하며 무려 10,000원을 주셨어요! 🎉',
+    effect:'10,000원이 생겼어요! 예산이 두 배가 됐어요.',
     q:'어떻게 할까요?',
-    cA:{t:'🛒 맛있는 것 하나 더 살래요!',sub:'1,000원 더 쓰기',tag:'소비'},
-    cB:{t:'🐷 저금통에 모두 저축할래요!',sub:'1,000원 저축',tag:'절약'},
-    applyA:G=>{ G.bonus+=1000; },
-    applyB:G=>{ /* 보너스 안 받고 저축 — 최종에서 처리 */ },
-    msgA:'보너스 1,000원으로 뭔가 더 살 수 있어요! 도시락에 추가해봐요.',
-    msgB:'1,000원을 저축했어요! 도시락을 확인해봐요.',
+    cA:{t:'🛒 맛있는 것 더 사야지! (10,000원 추가)',sub:'10,000원 더 쓰기',tag:'소비'},
+    cB:{t:'🐷 저금통에 모두 저축할래요!',sub:'10,000원 저축',tag:'절약'},
+    applyA:G=>{ G.bonus+=10000; },
+    applyB:G=>{ /* 저축 — 최종에서 처리 */ },
+    msgA:'보너스 10,000원으로 더 살 수 있어요! 도시락에 추가해봐요.',
+    msgB:'10,000원을 저축했어요! 도시락을 확인해봐요.',
   },
 ];
 
 let G={
   likeRank:FOODS.map(f=>f.id),
   needRank:FOODS.map(f=>f.id),
-  bag:new Map(),   // id → 수량
+  bag:new Map(),
   prices:{},
   saved:0,social:0,bonus:0,extraSpend:0,
   choices:[],evIdx:0,
+  evLogs:[],  // 누적 내역
 };
 
 function getF(id){return FOODS.find(f=>f.id===id);}
@@ -610,6 +626,7 @@ function renderEvProg(){
 function showEvent(){
   if(G.evIdx>=EVENTS.length){showSavings();return;}
   go('s-event');renderEvProg();
+  renderEvLog(); // 누적 내역 유지
   const ev=EVENTS[G.evIdx];
   document.getElementById('evCard').innerHTML=`
     <span class="evlabel">⚡ 돌발상황 ${G.evIdx+1}/10</span>
@@ -633,10 +650,69 @@ function chooseEv(idx){
   G.choices.push({ev:ev.id,tag:ch.tag});
   if(idx===0)ev.applyA(G);else ev.applyB(G);
   const msg=idx===0?ev.msgA:ev.msgB;
+
+  // 누적 내역 기록
+  const bagCostNow=(()=>{let s=0;G.bag.forEach((qty,id)=>s+=getP(id)*qty);return s;})();
+  G.evLogs.push({
+    num: G.evIdx+1,
+    icon: ev.icon,
+    title: ev.title,
+    choice: ch.t,
+    tag: ch.tag,
+    msg: msg,
+    bagCost: bagCostNow,
+    extraSpend: G.extraSpend,
+    bonus: G.bonus,
+  });
+  renderEvLog();
+
+  // 재편성 화면
   document.getElementById('repackSub').textContent=`돌발상황 ${G.evIdx+1}/10 — ${ev.title}`;
   document.getElementById('repackNotice').textContent='📌 '+msg;
-  renderRepack();
+  _rpBase=calcUsed();
+  renderRpItems();renderRpAdd();updateRpTotal();
   go('s-repack');
+}
+
+function renderEvLog(){
+  const list=document.getElementById('evLogList');
+  if(!list)return;
+  if(G.evLogs.length===0){
+    list.innerHTML='<div style="font-size:.82rem;color:#ccc;text-align:center;padding:.8rem 0;">아직 선택이 없어요</div>';
+    return;
+  }
+  list.innerHTML=G.evLogs.map(log=>{
+    const isSpend=log.tag==='소비';
+    const tagColor=isSpend?'#FF6B6B':'#4ECDC4';
+    const tagBg=isSpend?'#FFF0F0':'#F0FFFD';
+    const total=log.bagCost+log.extraSpend;
+    return `<div style="padding:.5rem .4rem;border-bottom:1px dashed #f0f0f0;font-size:.8rem;">
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
+        <span style="background:#eee;border-radius:8px;padding:1px 6px;font-family:'Jua',sans-serif;font-size:.72rem;color:#888;">${log.num}</span>
+        <span>${log.icon}</span>
+        <span style="font-family:'Jua',sans-serif;font-size:.78rem;color:#333;flex:1;">${log.title}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+        <span style="background:${tagBg};color:${tagColor};border-radius:8px;padding:1px 6px;font-size:.7rem;font-weight:700;">${log.tag}</span>
+        <span style="color:#555;font-size:.75rem;flex:1;">${log.choice.replace(/^[^\s]+\s/,'')}</span>
+      </div>
+      ${log.extraSpend>0||log.bonus>0?`<div style="font-size:.72rem;color:#E67E22;margin-top:1px;">💸 추가지출 ${log.extraSpend.toLocaleString()}원${log.bonus>0?' / 💰 보너스 +'+log.bonus.toLocaleString()+'원':''}</div>`:''}
+      <div style="font-size:.72rem;color:#888;margin-top:1px;">도시락: ${total.toLocaleString()}원</div>
+    </div>`;
+  }).join('');
+
+  // 총액 표시
+  const last=G.evLogs[G.evLogs.length-1];
+  const totalNow=last.bagCost+last.extraSpend;
+  const totalEl=document.getElementById('evLogTotal');
+  const totalAmtEl=document.getElementById('evLogTotalAmt');
+  if(totalEl){totalEl.style.display='block';}
+  if(totalAmtEl){
+    totalAmtEl.textContent=totalNow.toLocaleString()+'원';
+    totalAmtEl.style.color=totalNow>BASE_BUDGET?'#E74C3C':'#E67E22';
+  }
+  // 스크롤 아래로
+  list.scrollTop=list.scrollHeight;
 }
 
 // 재편성 +/- 렌더링
@@ -845,7 +921,7 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),2400);
 }
 function resetGame(){
-  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,choices:[],evIdx:0};
+  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,choices:[],evIdx:0,evLogs:[]};
   buildDrag('likeList',G.likeRank);
   buildDrag('needList',G.needRank);
   renderShopGrid('menuGrid','mc_',updateBag);
