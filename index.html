@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧺 소풍 도시락 경제 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky1:#7EC8E3;--sky2:#B8E4F7;--grass:#5BBF5B;
+  --card:#FFFFFF;--warm:#FFF8EC;
+  --a1:#FF6B6B;--a2:#FFB347;--a3:#4ECDC4;--a4:#A78BFA;
+  --txt:#2D2D2D;--txt2:#666;--border:#E8E0D0;--sh:rgba(0,0,0,0.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Gaegu',cursive;background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 38%,#D4F0A0 62%,var(--grass) 100%);min-height:100vh;overflow-x:hidden;color:var(--txt);}
+.clouds{position:fixed;top:0;left:0;width:100%;pointer-events:none;z-index:0;}
+.cloud{position:absolute;background:#fff;border-radius:50px;opacity:.82;animation:cmove linear infinite;}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%;}
+.c1{width:110px;height:36px;top:18px;animation-duration:30s;}
+.c1::before{width:56px;height:56px;top:-28px;left:12px;}.c1::after{width:40px;height:40px;top:-18px;left:52px;}
+.c2{width:80px;height:28px;top:52px;animation-duration:40s;animation-delay:-14s;}
+.c2::before{width:44px;height:44px;top:-22px;left:9px;}.c2::after{width:30px;height:30px;top:-14px;left:38px;}
+.c3{width:95px;height:30px;top:8px;animation-duration:34s;animation-delay:-24s;}
+.c3::before{width:48px;height:48px;top:-25px;left:11px;}.c3::after{width:36px;height:36px;top:-16px;left:46px;}
+@keyframes cmove{from{left:-200px}to{left:110%}}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;padding:1.5rem 1rem 4rem;flex-direction:column;align-items:center;}
+.screen.active{display:flex;}
+.card{background:var(--card);border-radius:24px;box-shadow:0 8px 32px var(--sh);padding:2rem;width:100%;max-width:500px;}
+.btn{font-family:'Jua',sans-serif;border:none;border-radius:50px;padding:.85rem 2rem;font-size:1.1rem;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.btn:hover{transform:translateY(-2px);}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.4;cursor:default;transform:none!important;}
+.bg{background:linear-gradient(135deg,#5CB85C,#27AE60);color:#fff;box-shadow:0 5px 16px rgba(39,174,96,.4);}
+.bb{background:linear-gradient(135deg,#3498DB,#1a6699);color:#fff;box-shadow:0 5px 16px rgba(41,128,185,.4);}
+.bo{background:linear-gradient(135deg,#E67E22,#D35400);color:#fff;box-shadow:0 5px 16px rgba(230,126,34,.4);}
+.bp{background:linear-gradient(135deg,#A78BFA,#7C3AED);color:#fff;box-shadow:0 5px 16px rgba(124,58,237,.4);}
+.phdr{background:rgba(255,255,255,.93);border-radius:20px;padding:1rem 1.5rem;width:100%;max-width:740px;margin-bottom:1.1rem;text-align:center;box-shadow:0 3px 16px var(--sh);}
+.ptag{display:inline-block;font-family:'Jua',sans-serif;font-size:.76rem;padding:3px 13px;border-radius:20px;color:#fff;margin-bottom:.35rem;letter-spacing:1px;}
+.ptitle{font-family:'Jua',sans-serif;font-size:1.45rem;color:#333;}
+.psub{font-size:.9rem;color:var(--txt2);margin-top:.25rem;}
+/* intro */
+.mascot{font-size:5.5rem;animation:hop 1.8s ease-in-out infinite;display:block;margin-bottom:.4rem;}
+@keyframes hop{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-16px) rotate(3deg)}}
+.glogo{font-family:'Jua',sans-serif;font-size:2.8rem;color:#2c7a2c;text-shadow:3px 3px 0 rgba(0,0,0,.07);line-height:1.1;}
+.gtagline{font-size:1rem;color:#5a8a5a;margin:.3rem 0 1.2rem;}
+.slist{display:flex;flex-direction:column;gap:.5rem;margin:.8rem 0 1.4rem;text-align:left;}
+.srow{display:flex;align-items:center;gap:.6rem;background:var(--warm);border-radius:13px;padding:.5rem .9rem;font-size:.95rem;}
+.snum{background:var(--a2);color:#fff;font-family:'Jua',sans-serif;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+.fchips{display:flex;flex-wrap:wrap;gap:.35rem;justify-content:center;margin:.6rem 0;}
+.chip{background:var(--warm);border-radius:10px;padding:.28rem .55rem;font-size:.95rem;border:1px solid var(--border);}
+/* drag */
+.dlist{display:flex;flex-direction:column;gap:.45rem;width:100%;max-width:680px;}
+.drow{display:flex;align-items:center;gap:.75rem;background:var(--card);border-radius:13px;padding:.6rem .95rem;box-shadow:0 2px 10px var(--sh);cursor:grab;border:2px solid transparent;user-select:none;transition:all .2s;}
+.drow:hover{transform:translateX(3px);border-color:var(--border);}
+.drow.dragging{opacity:.45;}
+.drow.drag-over{border-color:var(--a3);background:#f0fffc;}
+.drank{font-family:'Jua',sans-serif;font-size:1rem;color:#bbb;min-width:28px;}
+.drank.hi{color:var(--a2);}
+.demoji{font-size:1.7rem;}
+.dinfo{flex:1;}
+.dname{font-family:'Jua',sans-serif;font-size:.9rem;color:#333;}
+.dprice{font-size:.74rem;color:#bbb;}
+.dhandle{font-size:1rem;color:#ccc;}
+/* shop layout */
+.shop-layout{display:grid;grid-template-columns:1fr 295px;gap:1rem;width:100%;max-width:760px;}
+@media(max-width:580px){.shop-layout{grid-template-columns:1fr;}}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.mc{background:var(--card);border-radius:15px;padding:.78rem .62rem;box-shadow:0 2px 10px var(--sh);text-align:center;cursor:pointer;transition:all .2s;border:2.5px solid transparent;position:relative;user-select:none;}
+.mc:hover:not(.mdis){transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.13);}
+.mc.inbag{border-color:#27AE60;background:#f0fff4;}
+.mc.mdis{opacity:.4;cursor:not-allowed;}
+.mc .ck{position:absolute;top:5px;right:5px;background:#27AE60;color:#fff;border-radius:50%;width:18px;height:18px;font-size:.58rem;display:none;align-items:center;justify-content:center;font-weight:700;}
+.mc.inbag .ck{display:flex;}
+.mce{font-size:2rem;display:block;}
+.mcn{font-family:'Jua',sans-serif;font-size:.85rem;color:#333;}
+.mcp{font-size:.73rem;background:#FFE066;color:#7a4a00;padding:1px 7px;border-radius:8px;display:inline-block;font-weight:700;margin-top:2px;}
+.mcr{font-size:.67rem;color:var(--a4);margin-top:2px;}
+.qty-ctrl{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px;}
+.qty-btn{font-family:'Jua',sans-serif;border:none;border-radius:50%;width:24px;height:24px;font-size:1rem;cursor:pointer;transition:all .15s;line-height:24px;text-align:center;}
+.qty-m{background:#FFE0E0;color:#c0392b;}
+.qty-m:hover{background:#FFBBBB;}
+.qty-p{background:#E0F5E0;color:#27AE60;}
+.qty-p:hover{background:#BBEECC;}
+.qty-num{font-family:'Jua',sans-serif;font-size:1rem;color:#333;min-width:18px;text-align:center;}
+/* bag */
+.bag-panel{background:var(--card);border-radius:18px;padding:1rem;box-shadow:0 4px 18px var(--sh);}
+.bag-ttl{font-family:'Jua',sans-serif;font-size:.97rem;color:#5a3e28;margin-bottom:.65rem;}
+.bbar{background:#f0f0f0;border-radius:8px;height:14px;margin-bottom:.32rem;overflow:hidden;}
+.bfill{height:100%;border-radius:8px;background:linear-gradient(90deg,#27AE60,#5CB85C);transition:width .4s,background .3s;}
+.bfill.warn{background:linear-gradient(90deg,#E67E22,#F39C12);}
+.bfill.over{background:linear-gradient(90deg,#E74C3C,#C0392B);}
+.bnums{display:flex;justify-content:space-between;font-size:.77rem;color:#bbb;margin-bottom:.65rem;}
+.bnums .bu{font-family:'Jua',sans-serif;font-size:.9rem;color:#333;}
+.brows{min-height:80px;}
+.brow{display:flex;justify-content:space-between;align-items:center;padding:.36rem .42rem;border-radius:9px;background:#fafafa;margin-bottom:.28rem;font-size:.82rem;animation:slin .2s ease;}
+@keyframes slin{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.brl{display:flex;align-items:center;gap:5px;}
+.brm{background:var(--a1);color:#fff;border:none;border-radius:50%;width:17px;height:17px;font-size:.57rem;cursor:pointer;line-height:17px;text-align:center;}
+.bempty{text-align:center;color:#ccc;font-size:.85rem;padding:1rem;}
+.bscore{background:#f5f0ff;border-radius:9px;padding:.42rem .72rem;margin-top:.55rem;font-size:.79rem;color:#666;}
+.bscore span{font-family:'Jua',sans-serif;font-size:1rem;color:var(--a4);}
+/* event */
+.ev-wrap{width:100%;max-width:520px;}
+.evprog{display:flex;gap:4px;justify-content:center;margin-bottom:1.2rem;}
+.edot{width:28px;height:8px;border-radius:4px;background:#ddd;transition:background .3s;}
+.edot.done{background:var(--a3);}
+.edot.cur{background:var(--a2);}
+.evcard{background:var(--card);border-radius:26px;padding:1.9rem 1.7rem;box-shadow:0 16px 50px rgba(0,0,0,.15);animation:popin .38s cubic-bezier(.175,.885,.32,1.275);}
+@keyframes popin{from{opacity:0;transform:scale(.87)}to{opacity:1;transform:scale(1)}}
+.evlabel{display:inline-block;font-family:'Jua',sans-serif;font-size:.75rem;padding:3px 13px;border-radius:20px;background:var(--a1);color:#fff;margin-bottom:.65rem;letter-spacing:1px;animation:pulse 1.4s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.eicon{font-size:3.4rem;display:block;margin-bottom:.45rem;}
+.ettl{font-family:'Jua',sans-serif;font-size:1.5rem;color:#222;margin-bottom:.55rem;}
+.estory{font-size:.92rem;color:#555;line-height:1.7;margin-bottom:.85rem;}
+.eeffect{background:#FFF3CD;border-radius:11px;padding:.72rem .88rem;margin-bottom:1rem;font-size:.85rem;color:#7a4a00;border-left:4px solid #FFB300;}
+.eq{font-family:'Jua',sans-serif;font-size:1rem;color:#333;margin-bottom:.85rem;}
+.choices{display:flex;flex-direction:column;gap:.55rem;}
+.bchoice{font-family:'Jua',sans-serif;font-size:.94rem;padding:.82rem 1.05rem;border-radius:13px;border:2.5px solid;cursor:pointer;background:#fff;transition:all .2s;text-align:left;line-height:1.4;}
+.bchoice:hover{transform:translateX(5px);}
+.ca{border-color:var(--a1);color:#c0392b;}
+.ca:hover{background:#fff5f5;}
+.cb{border-color:var(--a3);color:#0a7a72;}
+.cb:hover{background:#e6fff9;}
+.choice-tag{font-size:.7rem;padding:2px 8px;border-radius:10px;margin-left:6px;vertical-align:middle;}
+.tag-spend{background:#FEECEC;color:#c0392b;}
+.tag-save{background:#E8F8F5;color:#0a7a72;}
+/* repack */
+.repack-notice{background:var(--warm);border-radius:14px;padding:.75rem 1rem;margin-bottom:.9rem;font-size:.87rem;color:#7a4a00;border-left:4px solid var(--a2);width:100%;max-width:600px;}
+.rp-row{display:flex;align-items:center;justify-content:space-between;padding:.5rem .6rem;border-radius:10px;background:#fafafa;margin-bottom:.35rem;}
+.rp-row-left{display:flex;align-items:center;gap:.5rem;font-size:.88rem;}
+.rp-ctrl{display:flex;align-items:center;gap:.4rem;}
+.rp-btn{font-family:'Jua',sans-serif;border:none;border-radius:50%;width:28px;height:28px;font-size:1rem;cursor:pointer;transition:all .15s;line-height:28px;text-align:center;}
+.rp-minus{background:#FFE0E0;color:#c0392b;}
+.rp-minus:hover{background:#FFBBBB;}
+.rp-plus{background:#E0F5E0;color:#27AE60;}
+.rp-plus:hover{background:#BBEECC;}
+.rp-price{font-size:.78rem;color:#E67E22;font-weight:700;min-width:42px;text-align:right;}
+.add-chip{background:var(--warm);border:1.5px solid var(--border);border-radius:20px;padding:.3rem .7rem;font-size:.82rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.3rem;}
+.add-chip:hover{background:#E8F8F5;border-color:var(--a3);}
+/* savings */
+.sav-card{background:var(--card);border-radius:26px;padding:2.1rem;max-width:500px;width:100%;box-shadow:0 16px 50px rgba(0,0,0,.15);animation:popin .4s cubic-bezier(.175,.885,.32,1.275);}
+.savicon{font-size:3.8rem;display:block;margin-bottom:.45rem;animation:hop 2s ease-in-out infinite;}
+.savttl{font-family:'Jua',sans-serif;font-size:1.65rem;color:#333;margin-bottom:.4rem;}
+.final-list{background:var(--warm);border-radius:14px;padding:.95rem;margin-bottom:1rem;border:1.5px dashed #ddd;text-align:left;}
+.fl-ttl{font-family:'Jua',sans-serif;font-size:.88rem;color:#999;text-align:center;margin-bottom:.55rem;}
+.fl-row{display:flex;justify-content:space-between;font-size:.85rem;padding:.24rem 0;color:#555;}
+.fl-div{border:none;border-top:1.5px dashed #ddd;margin:.42rem 0;}
+.fl-total{font-family:'Jua',sans-serif;font-size:.98rem;color:var(--a2);}
+.fl-save{font-size:.8rem;color:#27AE60;font-weight:700;}
+.savq{font-family:'Jua',sans-serif;font-size:1.02rem;color:#333;margin-bottom:.85rem;text-align:center;}
+.sav-choices{display:flex;flex-direction:column;gap:.55rem;}
+/* result */
+.res-card{background:var(--card);border-radius:26px;padding:2.2rem;max-width:520px;width:100%;text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.18);animation:popin .5s cubic-bezier(.175,.885,.32,1.275);}
+.rbadge{display:inline-block;padding:5px 18px;border-radius:28px;font-family:'Jua',sans-serif;font-size:.82rem;margin-bottom:.65rem;letter-spacing:1px;}
+.ricon{font-size:4.5rem;display:block;animation:hop 2s ease-in-out infinite;}
+.rname{font-family:'Jua',sans-serif;font-size:1.95rem;margin:.32rem 0;}
+.rdesc{font-size:.91rem;color:#555;line-height:1.75;margin-bottom:1.1rem;}
+.traits{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-bottom:1rem;}
+.tpill{background:var(--warm);border-radius:18px;padding:.3rem .82rem;font-size:.78rem;color:#666;border:1px solid var(--border);}
+.lbox{background:linear-gradient(135deg,#EEF2FF,#FFF0F9);border-radius:13px;padding:.95rem;margin-bottom:1.2rem;text-align:left;border-left:4px solid var(--a4);}
+.lttl{font-family:'Jua',sans-serif;font-size:.88rem;color:var(--a4);margin-bottom:.32rem;}
+.ltxt{font-size:.86rem;color:#555;line-height:1.7;}
+.score-bars{display:flex;flex-direction:column;gap:.45rem;margin:.9rem 0 1.2rem;text-align:left;}
+.sbar-row{display:flex;align-items:center;gap:.55rem;font-size:.83rem;}
+.sbar-lbl{min-width:78px;color:#666;font-family:'Jua',sans-serif;font-size:.8rem;}
+.sbar-track{flex:1;background:#f0f0f0;border-radius:6px;height:11px;overflow:hidden;}
+.sbar-fill{height:100%;border-radius:6px;transition:width .8s ease;}
+.sbar-val{min-width:24px;font-family:'Jua',sans-serif;font-size:.78rem;color:#aaa;}
+/* toast */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--a1);color:#fff;padding:.68rem 1.3rem;border-radius:50px;font-family:'Jua',sans-serif;font-size:.98rem;z-index:999;transition:transform .35s;box-shadow:0 6px 20px rgba(231,76,60,.5);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.shake{animation:shk .4s;}
+@keyframes shk{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+</style>
+</head>
+<body>
+<div class="clouds"><div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div></div>
+<div class="toast" id="toast"></div>
+
+<!-- INTRO -->
+<div id="s-intro" class="screen active">
+  <div class="card" style="text-align:center;">
+    <span class="mascot">🧺</span>
+    <h1 class="glogo">소풍 도시락<br>경제 게임</h1>
+    <p class="gtagline">예산을 지혜롭게 써봐요! 💰</p>
+    <div class="fchips" id="foodChips"></div>
+    <div class="slist">
+      <div class="srow"><div class="snum">1</div>좋아하는 음식 순서 1~10위 정하기 ❤️</div>
+      <div class="srow"><div class="snum">2</div>소풍에 필요한 순서 1~10위 정하기 🎯</div>
+      <div class="srow"><div class="snum">3</div>예산 10,000원으로 도시락 싸기 🛒</div>
+      <div class="srow"><div class="snum">4</div>돌발상황마다 선택 후 도시락 재편성 ⚡</div>
+      <div class="srow"><div class="snum">5</div>남은 돈 저축 or 소비 결정 💸</div>
+      <div class="srow"><div class="snum">6</div>내 소비 성향 확인 🏆</div>
+    </div>
+    <button class="btn bg" onclick="go('s-rank-like')">🎉 게임 시작!</button>
+  </div>
+</div>
+
+<!-- RANK LIKE -->
+<div id="s-rank-like" class="screen">
+  <div class="phdr">
+    <div class="ptag" style="background:var(--a1)">1단계</div>
+    <div class="ptitle">❤️ 좋아하는 순서 정하기</div>
+    <div class="psub">위아래로 끌어서 순서를 바꿔보세요! (1위 = 가장 좋아하는 것)</div>
+  </div>
+  <div class="dlist" id="likeList"></div>
+  <div style="height:.8rem"></div>
+  <button class="btn bg" onclick="go('s-rank-need')">다음 →</button>
+</div>
+
+<!-- RANK NEED -->
+<div id="s-rank-need" class="screen">
+  <div class="phdr">
+    <div class="ptag" style="background:var(--a3)">2단계</div>
+    <div class="ptitle">🎯 꼭 필요한 순서 정하기</div>
+    <div class="psub">소풍에 꼭 필요한 순서대로 바꿔보세요!</div>
+  </div>
+  <div class="dlist" id="needList"></div>
+  <div style="height:.8rem"></div>
+  <button class="btn bb" onclick="go('s-shop')">다음 →</button>
+</div>
+
+<!-- SHOP -->
+<div id="s-shop" class="screen">
+  <div class="phdr" style="max-width:760px;">
+    <div class="ptag" style="background:var(--a2)">3단계</div>
+    <div class="ptitle">🛒 도시락 싸기</div>
+    <div class="psub">예산 10,000원 안에서 음식을 골라보세요!</div>
+  </div>
+  <div class="shop-layout">
+    <div>
+      <div style="font-family:'Jua',sans-serif;font-size:.95rem;color:#444;margin-bottom:.5rem;">🍱 메뉴 고르기 (클릭!)</div>
+      <div class="mgrid" id="menuGrid"></div>
+    </div>
+    <div>
+      <div class="bag-panel">
+        <div class="bag-ttl">🎒 내 도시락 통</div>
+        <div class="bbar"><div class="bfill" id="bFill" style="width:0%"></div></div>
+        <div class="bnums"><span class="bu" id="usedAmt">0원</span><span>10,000원</span></div>
+        <div class="brows" id="bagList"><div class="bempty">아직 비어있어요!</div></div>
+        <div class="bscore">점수: <span id="ttlScore">0</span>점</div>
+        <div style="margin-top:.65rem;">
+          <button class="btn bo" style="width:100%;padding:.68rem;font-size:.95rem;" id="btnCheckout" onclick="startEvents()" disabled>🎒 담기 완료!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT -->
+<div id="s-event" class="screen">
+  <div class="ev-wrap">
+    <div class="evprog" id="evProg"></div>
+    <div class="evcard" id="evCard"></div>
+  </div>
+</div>
+
+<!-- REPACK -->
+<div id="s-repack" class="screen">
+  <div class="phdr" style="max-width:600px;">
+    <div class="ptag" style="background:var(--a4)">도시락 다시 싸기</div>
+    <div class="ptitle">🎒 도시락을 다시 정리해요!</div>
+    <div class="psub" id="repackSub"></div>
+  </div>
+  <div class="repack-notice" id="repackNotice"></div>
+  <div style="width:100%;max-width:600px;">
+    <div class="bag-panel">
+      <div class="bag-ttl">🎒 현재 도시락 통 <span style="font-size:.8rem;color:#aaa;font-family:'Gaegu',cursive;font-weight:400;">(+ 추가 / − 빼기)</span></div>
+      <div id="rpItemList"></div>
+      <div style="margin-top:.8rem;border-top:1.5px dashed #eee;padding-top:.8rem;">
+        <div style="font-family:'Jua',sans-serif;font-size:.85rem;color:#aaa;margin-bottom:.5rem;">담지 않은 메뉴 추가하기</div>
+        <div id="rpAddList" style="display:flex;flex-wrap:wrap;gap:.4rem;"></div>
+      </div>
+      <div style="margin-top:.9rem;background:#f9f6ff;border-radius:10px;padding:.55rem .8rem;font-size:.82rem;color:#666;">
+        현재 총액: <span id="rpTotal" style="font-family:'Jua',sans-serif;font-size:1.05rem;color:var(--a4);">0원</span>
+        <span style="margin-left:.8rem;">변화: <span id="rpDelta" style="font-family:'Jua',sans-serif;font-size:1rem;color:#27AE60;">±0원</span></span>
+      </div>
+      <div style="margin-top:.7rem;">
+        <button class="btn bp" style="width:100%;padding:.68rem;font-size:.95rem;" onclick="repackDone()">✅ 이렇게 담을게요!</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVINGS -->
+<div id="s-savings" class="screen">
+  <div class="sav-card" id="savCard"></div>
+</div>
+
+<!-- RESULT -->
+<div id="s-result" class="screen">
+  <div class="res-card" id="resCard"></div>
+</div>
+
+<script>
+const FOODS=[
+  {id:'gimbap',  name:'김밥',       e:'🍙',price:2500},
+  {id:'sandwich',name:'샌드위치',   e:'🥪',price:2000},
+  {id:'chicken', name:'닭강정',     e:'🍗',price:3000},
+  {id:'salad',   name:'샐러드',     e:'🥗',price:1500},
+  {id:'fruit',   name:'과일컵',     e:'🍓',price:1500},
+  {id:'juice',   name:'오렌지주스', e:'🥤',price:1000},
+  {id:'water',   name:'생수',       e:'💧',price:500},
+  {id:'yogurt',  name:'요구르트',   e:'🥛',price:700},
+  {id:'cookie',  name:'쿠키',       e:'🍪',price:1200},
+  {id:'jelly',   name:'젤리',       e:'🍬',price:700},
+];
+const BASE_BUDGET=10000;
+
+const EVENTS=[
+  {
+    id:'e1',icon:'📈',title:'닭강정 가격이 올랐어요!',
+    story:'닭고기 공급이 줄어서 닭강정 가격이 6,000원 → 9,000원으로 뛰었어요!',
+    effect:'닭강정이 담겨 있다면 예산을 초과할 수 있어요.',
+    q:'어떻게 할까요?',
+    cA:{t:'💸 비싸도 닭강정은 꼭 먹어야 해!',sub:'4,500원 — 더 쓰기',tag:'소비'},
+    cB:{t:'🔄 닭강정 빼고 다른 걸로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ G.prices['chicken']=4500; },
+    applyB:G=>{ G.bag.delete('chicken'); G.prices['chicken']=4500; },
+    msgA:'닭강정을 4,500원에 사기로 했어요! 예산이 빠듯해요. 도시락을 다시 맞춰보세요.',
+    msgB:'닭강정을 뺐어요. 남은 예산으로 도시락을 다시 채워보세요!',
+  },
+  {
+    id:'e2',icon:'👫',title:'친구가 김밥을 싸왔어요!',
+    story:'단짝 친구가 "나 김밥 엄청 많이 싸왔으니까 나눠 먹자!"라고 했어요.',
+    effect:'김밥을 따로 사지 않아도 될 것 같아요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🍙 그래도 내 김밥도 사야지!',sub:'2,500원 — 더 쓰기',tag:'소비'},
+    cB:{t:'🙌 친구 김밥 먹을게, 내 돈 아낄래',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ },
+    applyB:G=>{ G.bag.delete('gimbap'); },
+    msgA:'김밥도 그냥 사기로 했어요! 도시락을 확인해보세요.',
+    msgB:'김밥을 뺐어요. 남은 예산으로 다시 채워보세요!',
+  },
+  {
+    id:'e3',icon:'🌧️',title:'갑자기 비가 내려요!',
+    story:'예보에 없던 비가 왔어요! 샐러드나 과일컵은 비에 젖으면 먹기 힘들어요.',
+    effect:'야외에서 먹기 불편한 음식이 생겼어요.',
+    q:'어떻게 할까요?',
+    cA:{t:'☔ 우산 있으니까 그냥 먹을게요!',sub:'추가 지출 없음 — 그냥 유지',tag:'소비'},
+    cB:{t:'🔄 샐러드·과일 빼고 포장된 걸로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ },
+    applyB:G=>{ G.bag.delete('salad'); G.bag.delete('fruit'); },
+    msgA:'그냥 먹기로 했어요! 도시락을 확인해봐요.',
+    msgB:'샐러드·과일을 뺐어요. 남은 예산으로 다시 채워보세요!',
+  },
+  {
+    id:'e4',icon:'🎁',title:'선생님이 음료수를 나눠줬어요!',
+    story:'선생님이 모든 친구들에게 오렌지주스를 한 개씩 선물로 주셨어요!',
+    effect:'오렌지주스를 따로 사지 않아도 돼요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🥤 선생님 주스 + 내 주스, 두 개 다 마실래요',sub:'그대로 유지 — 더 소비',tag:'소비'},
+    cB:{t:'💰 내 주스 빼고 2,000원 아낄게요',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ },
+    applyB:G=>{ G.bag.delete('juice'); },
+    msgA:'주스 두 개 마시기로 했어요! 도시락을 확인해봐요.',
+    msgB:'주스를 뺐어요. 남은 예산으로 다시 채워보세요!',
+  },
+  {
+    id:'e5',icon:'👜',title:'도시락 통이 너무 작아요!',
+    story:'앗! 도시락 통이 생각보다 작아서 음식을 최대 4가지만 넣을 수 있어요!',
+    effect:'4가지를 초과하면 덜어내야 해요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🛍 더 큰 도시락 통을 1,000원에 빌릴게요',sub:'1,000원 추가 — 더 쓰기',tag:'소비'},
+    cB:{t:'🎯 4가지만 골라서 담을게요',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ G.extraSpend+=1000; },
+    applyB:G=>{
+      const items=[...G.bag.keys()];
+      if(items.length>4){
+        const sorted=items.sort((a,b)=>G.needRank.indexOf(a)-G.needRank.indexOf(b));
+        const keep=new Set(sorted.slice(0,4));
+        [...G.bag.keys()].forEach(id=>{ if(!keep.has(id)) G.bag.delete(id); });
+      }
+    },
+    msgA:'큰 통을 빌렸어요! 2,000원이 추가로 들었어요. 도시락을 확인해봐요.',
+    msgB:'4가지만 담기로 했어요! 가장 필요한 것 위주로 정리해봐요.',
+  },
+  {
+    id:'e6',icon:'🍓',title:'과일값이 폭등했어요!',
+    story:'태풍으로 과일 농사가 망했대요! 과일컵 가격이 3,000원 → 5,500원이 됐어요.',
+    effect:'과일컵이 있다면 예산이 빠듯해져요.',
+    q:'어떻게 할까요?',
+    cA:{t:'😤 비싸도 과일은 꼭 먹어야 해!',sub:'2,700원 — 더 쓰기',tag:'소비'},
+    cB:{t:'🔄 과일컵 빼고 젤리·쿠키로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
+    applyA:G=>{ G.prices['fruit']=2700; },
+    applyB:G=>{ G.bag.delete('fruit'); G.prices['fruit']=2700; },
+    msgA:'과일컵을 2,700원에 사기로 했어요! 도시락을 다시 맞춰보세요.',
+    msgB:'과일컵을 뺐어요. 남은 예산으로 다시 채워보세요!',
+  },
+  {
+    id:'e7',icon:'🤝',title:'짝꿍이 도시락을 못 가져왔어요!',
+    story:'짝꿍이 아침에 도시락을 깜빡 잊었어요. 배고파 보여요.',
+    effect:'나눠주면 내 양이 줄어요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🍙 짝꿍 몫으로 김밥 하나 더 사줄게요',sub:'2,500원 추가 — 더 쓰기',tag:'소비'},
+    cB:{t:'💞 내 도시락 반씩 나눠 먹어요',sub:'추가 지출 없음 — 절약',tag:'절약'},
+    applyA:G=>{ G.extraSpend+=2500; G.social+=3; },
+    applyB:G=>{ G.social+=3; },
+    msgA:'짝꿍 김밥을 사줬어요! 따뜻한 마음이에요. 도시락을 확인해봐요.',
+    msgB:'반씩 나눠 먹기로 했어요! 도시락을 확인해봐요.',
+  },
+  {
+    id:'e8',icon:'🏷️',title:'요구르트 1+1 행사 중!',
+    story:'편의점에서 요구르트 1+1 행사를 해요! 하나 사면 하나 더 공짜예요.',
+    effect:'요구르트를 사면 두 개를 받아요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🥛 요구르트 사서 두 개 다 먹을게요',sub:'700원 — 더 쓰기',tag:'소비'},
+    cB:{t:'😐 필요 없는 건 안 사요',sub:'지출 없음 — 절약',tag:'절약'},
+    applyA:G=>{ if(!G.bag.has('yogurt')){ G.bag.set('yogurt',1); } },
+    applyB:G=>{ },
+    msgA:'요구르트를 담았어요! 두 개를 먹을 수 있어요. 도시락을 확인해봐요.',
+    msgB:'요구르트는 패스! 도시락을 확인해봐요.',
+  },
+  {
+    id:'e9',icon:'☀️',title:'날씨가 너무 더워요!',
+    story:'소풍 당일 기온이 35도! 음료가 꼭 필요해요.',
+    effect:'음료가 없으면 더위를 이기기 힘들어요.',
+    q:'어떻게 할까요?',
+    cA:{t:'🥤 오렌지주스 추가로 사기',sub:'1,000원 — 더 쓰기',tag:'소비'},
+    cB:{t:'💧 생수로 해결할게요',sub:'500원 — 절약',tag:'절약'},
+    applyA:G=>{ if(!G.bag.has('juice')) G.bag.set('juice',1); },
+    applyB:G=>{ if(!G.bag.has('water')) G.bag.set('water',1); },
+    msgA:'오렌지주스를 추가했어요! 도시락을 확인해봐요.',
+    msgB:'생수를 추가했어요! 도시락을 확인해봐요.',
+  },
+  {
+    id:'e10',icon:'🎊',title:'할머니 보너스 용돈!',
+    story:'할머니가 "소풍 잘 다녀와라!" 하며 1,000원을 주셨어요!',
+    effect:'1,000원이 생겼어요!',
+    q:'어떻게 할까요?',
+    cA:{t:'🛒 맛있는 것 하나 더 살래요!',sub:'1,000원 더 쓰기',tag:'소비'},
+    cB:{t:'🐷 저금통에 모두 저축할래요!',sub:'1,000원 저축',tag:'절약'},
+    applyA:G=>{ G.bonus+=1000; },
+    applyB:G=>{ /* 보너스 안 받고 저축 — 최종에서 처리 */ },
+    msgA:'보너스 1,000원으로 뭔가 더 살 수 있어요! 도시락에 추가해봐요.',
+    msgB:'1,000원을 저축했어요! 도시락을 확인해봐요.',
+  },
+];
+
+let G={
+  likeRank:FOODS.map(f=>f.id),
+  needRank:FOODS.map(f=>f.id),
+  bag:new Map(),   // id → 수량
+  prices:{},
+  saved:0,social:0,bonus:0,extraSpend:0,
+  choices:[],evIdx:0,
+};
+
+function getF(id){return FOODS.find(f=>f.id===id);}
+function getP(id){return G.prices[id]??getF(id).price;}
+function totalBudget(g){return BASE_BUDGET+(g||G).bonus;}
+function calcUsed(g){
+  g=g||G;
+  let s=0;
+  g.bag.forEach((qty,id)=>s+=getP(id)*qty);
+  return s+g.extraSpend;
+}
+function bagQty(id){return G.bag.get(id)||0;}
+function bagHas(id){return G.bag.has(id)&&G.bag.get(id)>0;}
+
+window.onload=()=>{
+  document.getElementById('foodChips').innerHTML=FOODS.map(f=>`<span class="chip">${f.e}${f.name}</span>`).join('');
+  buildDrag('likeList',G.likeRank);
+  buildDrag('needList',G.needRank);
+  renderShopGrid('menuGrid','mc_',updateBag);
+};
+
+/* DRAG */
+function buildDrag(cid,arr){
+  const el=document.getElementById(cid);el.innerHTML='';
+  arr.forEach((id,i)=>{
+    const f=getF(id),row=document.createElement('div');
+    row.className='drow';row.draggable=true;row.dataset.id=id;
+    row.innerHTML=`<span class="drank${i<3?' hi':''}">${i+1}위</span><span class="demoji">${f.e}</span><span class="dinfo"><span class="dname">${f.name}</span><br><span class="dprice">${f.price.toLocaleString()}원</span></span><span class="dhandle">⠿</span>`;
+    row.addEventListener('dragstart',()=>{window._ds=row;row.classList.add('dragging');});
+    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(e=>e.classList.remove('drag-over'));});
+    row.addEventListener('dragover',e=>{e.preventDefault();if(row!==window._ds)row.classList.add('drag-over');});
+    row.addEventListener('dragleave',()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(window._ds&&window._ds!==row){
+        const fi=arr.indexOf(window._ds.dataset.id),ti=arr.indexOf(row.dataset.id);
+        [arr[fi],arr[ti]]=[arr[ti],arr[fi]];
+        buildDrag(cid,arr);
+      }
+    });
+    el.appendChild(row);
+  });
+}
+
+/* SHOP GRID */
+function renderShopGrid(gridId,pfx,updFn){
+  const grid=document.getElementById(gridId);grid.innerHTML='';
+  FOODS.forEach(f=>{
+    const qty=bagQty(f.id),p=getP(f.id);
+    const lr=G.likeRank.indexOf(f.id)+1,nr=G.needRank.indexOf(f.id)+1;
+    const div=document.createElement('div');
+    div.className='mc'+(qty>0?' inbag':'');div.id=pfx+f.id;
+    div.innerHTML=`
+      <div class="ck">✓</div>
+      <span class="mce">${f.e}</span>
+      <div class="mcn">${f.name}</div>
+      <span class="mcp">${p.toLocaleString()}원</span>
+      <div class="mcr"><span style="color:#FF6B6B;">❤️좋아하는 순위 ${lr}위</span></div>
+      <div class="mcr"><span style="color:#A78BFA;">🎯필요한 순위 ${nr}위</span></div>
+      <div class="qty-ctrl" onclick="event.stopPropagation()">
+        <button class="qty-btn qty-m" onclick="changeQty('${f.id}','${pfx}',${updFn.name},-1)">−</button>
+        <span class="qty-num" id="${pfx}qty_${f.id}">${qty}</span>
+        <button class="qty-btn qty-p" onclick="changeQty('${f.id}','${pfx}',${updFn.name},1)">+</button>
+      </div>`;
+    grid.appendChild(div);
+  });
+  refreshOverBudgetState(pfx);
+}
+
+function changeQty(id, pfx, updFn, delta){
+  const p=getP(id);
+  const cur=bagQty(id);
+  const next=cur+delta;
+  if(next<0) return;
+  if(delta>0){
+    const afterCost=calcUsed()+p;
+    if(afterCost>BASE_BUDGET){
+      toast('🚫 예산 10,000원을 초과해요! 더 담을 수 없어요.');
+      const el=document.getElementById(pfx+id);
+      if(el){el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400);}
+      return;
+    }
+  }
+  if(next===0) G.bag.delete(id);
+  else G.bag.set(id,next);
+  const card=document.getElementById(pfx+id);
+  if(card){
+    card.classList.toggle('inbag',next>0);
+    const qEl=document.getElementById(`${pfx}qty_${id}`);
+    if(qEl) qEl.textContent=next;
+  }
+  updFn();
+  // 예산 가득 찼으면 추가 불가 표시
+  refreshOverBudgetState(pfx);
+}
+
+function refreshOverBudgetState(pfx){
+  const remaining=BASE_BUDGET-calcUsed();
+  FOODS.forEach(f=>{
+    const card=document.getElementById(pfx+f.id);
+    if(!card) return;
+    const plusBtn=card.querySelector('.qty-p');
+    if(!plusBtn) return;
+    const canAdd=getP(f.id)<=remaining;
+    plusBtn.disabled=!canAdd;
+    plusBtn.style.opacity=canAdd?'1':'0.3';
+    plusBtn.style.cursor=canAdd?'pointer':'not-allowed';
+  });
+}
+
+// 하위 호환 — 이벤트 applyA/B에서 bag.delete/add 쓰는 부분 대응
+// bag.has → bagHas, bag.add → bagSet(id,1), bag.delete → bagDel
+function bagSet(id,qty){G.bag.set(id,qty);}
+function bagDel(id){G.bag.delete(id);}
+
+function toggleBag(id,pfx,updFn){
+  // 하위 호환용 — 클릭 시 0↔1 토글
+  if(bagHas(id)) changeQty(id,pfx,updFn,-bagQty(id));
+  else changeQty(id,pfx,updFn,1);
+}
+function updateBag(){_upd('bFill','usedAmt','bagList','ttlScore','mc_',true);}
+function updateRepackBag(){_upd('rbFill','rbUsed','rbList','rbScore','rmc_',false);}
+function _upd(fillId,amtId,listId,scoreId,pfx,isMain){
+  const used=calcUsed(),total=totalBudget();
+  const pct=Math.min(used/total*100,100);
+  const fill=document.getElementById(fillId);
+  if(fill){fill.style.width=pct+'%';fill.className='bfill'+(pct>=100?' over':pct>=80?' warn':'');}
+  const amtEl=document.getElementById(amtId);if(amtEl)amtEl.textContent=used.toLocaleString()+'원';
+  let score=0;
+  G.bag.forEach((qty,id)=>{score+=(FOODS.length-G.likeRank.indexOf(id)+FOODS.length-G.needRank.indexOf(id))*qty;});
+  const scEl=document.getElementById(scoreId);if(scEl)scEl.textContent=score;
+  const list=document.getElementById(listId);if(!list)return;
+  if(G.bag.size===0){
+    list.innerHTML='<div class="bempty">아직 비어있어요!</div>';
+    if(isMain)document.getElementById('btnCheckout').disabled=true;
+    return;
+  }
+  const updFnName=isMain?'updateBag':'updateRepackBag';
+  list.innerHTML='';
+  G.bag.forEach((qty,id)=>{
+    const f=getF(id),p=getP(id);
+    const row=document.createElement('div');
+    row.className='brow';
+    row.innerHTML=`
+      <span class="brl"><span>${f.e}</span><span style="font-family:'Jua',sans-serif;">${f.name}</span></span>
+      <span style="display:flex;align-items:center;gap:4px;">
+        <button class="brm" style="background:#eee;color:#666;" onclick="changeQty('${id}','${pfx}',${updFnName},-1)">−</button>
+        <span style="font-family:'Jua',sans-serif;font-size:.9rem;color:#333;min-width:14px;text-align:center;">${qty}</span>
+        <button class="brm" style="background:#c8f0c8;color:#27AE60;" onclick="changeQty('${id}','${pfx}',${updFnName},1)">+</button>
+        <span style="color:#E67E22;font-weight:700;font-size:.78rem;min-width:46px;text-align:right;">${(p*qty).toLocaleString()}원</span>
+        <button class="brm" onclick="changeQty('${id}','${pfx}',${updFnName},-${qty})">✕</button>
+      </span>`;
+    list.appendChild(row);
+  });
+  if(isMain)document.getElementById('btnCheckout').disabled=false;
+}
+
+/* EVENTS */
+function startEvents(){G.evIdx=0;showEvent();}
+function renderEvProg(){
+  document.getElementById('evProg').innerHTML=EVENTS.map((_,i)=>`<div class="edot${i<G.evIdx?' done':i===G.evIdx?' cur':''}"></div>`).join('');
+}
+function showEvent(){
+  if(G.evIdx>=EVENTS.length){showSavings();return;}
+  go('s-event');renderEvProg();
+  const ev=EVENTS[G.evIdx];
+  document.getElementById('evCard').innerHTML=`
+    <span class="evlabel">⚡ 돌발상황 ${G.evIdx+1}/10</span>
+    <span class="eicon">${ev.icon}</span>
+    <h2 class="ettl">${ev.title}</h2>
+    <p class="estory">${ev.story}</p>
+    <div class="eeffect">💡 ${ev.effect}</div>
+    <p class="eq">${ev.q}</p>
+    <div class="choices">
+      <button class="bchoice ca" onclick="chooseEv(0)">
+        ${ev.cA.t}<br><span class="choice-tag tag-spend">${ev.cA.sub}</span>
+      </button>
+      <button class="bchoice cb" onclick="chooseEv(1)">
+        ${ev.cB.t}<br><span class="choice-tag tag-save">${ev.cB.sub}</span>
+      </button>
+    </div>`;
+}
+function chooseEv(idx){
+  const ev=EVENTS[G.evIdx];
+  const ch=idx===0?ev.cA:ev.cB;
+  G.choices.push({ev:ev.id,tag:ch.tag});
+  if(idx===0)ev.applyA(G);else ev.applyB(G);
+  const msg=idx===0?ev.msgA:ev.msgB;
+  document.getElementById('repackSub').textContent=`돌발상황 ${G.evIdx+1}/10 — ${ev.title}`;
+  document.getElementById('repackNotice').textContent='📌 '+msg;
+  renderRepack();
+  go('s-repack');
+}
+
+// 재편성 +/- 렌더링
+let _rpBase=0; // 재편성 시작 시점 총액 기준
+function renderRepack(){
+  _rpBase=calcUsed();
+  renderRpItems();
+  renderRpAdd();
+  updateRpTotal();
+}
+function renderRpItems(){
+  const el=document.getElementById('rpItemList');
+  if(G.bag.size===0&&G.extraSpend===0){el.innerHTML='<div class="bempty">도시락이 비어있어요!</div>';return;}
+  el.innerHTML='';
+  G.bag.forEach((qty,id)=>{
+    const f=getF(id),p=getP(id);
+    const row=document.createElement('div');
+    row.className='rp-row';
+    row.innerHTML=`
+      <span class="rp-row-left"><span>${f.e}</span><span style="font-family:'Jua',sans-serif;">${f.name}</span></span>
+      <span class="rp-ctrl">
+        <button class="rp-btn rp-minus" onclick="rpChangeQty('${id}',-1)">−</button>
+        <span style="font-family:'Jua',sans-serif;font-size:.95rem;color:#333;min-width:18px;text-align:center;">${qty}</span>
+        <button class="rp-btn rp-plus" onclick="rpChangeQty('${id}',1)">+</button>
+        <span class="rp-price">${(p*qty).toLocaleString()}원</span>
+      </span>`;
+    el.appendChild(row);
+  });
+  if(G.extraSpend>0){
+    const row=document.createElement('div');
+    row.className='rp-row';
+    row.style.background='#FFF3CD';
+    row.innerHTML=`
+      <span class="rp-row-left"><span>🛍</span><span style="font-family:'Jua',sans-serif;color:#b36000;">큰 도시락통 빌리기</span></span>
+      <span class="rp-ctrl"><span class="rp-price" style="color:#E67E22;">+${G.extraSpend.toLocaleString()}원</span></span>`;
+    el.appendChild(row);
+  }
+}
+
+function rpChangeQty(id, delta){
+  const cur=G.bag.get(id)||0;
+  const next=cur+delta;
+  if(delta>0){
+    const afterCost=calcUsed()+getP(id);
+    if(afterCost>BASE_BUDGET){ toast('🚫 예산 10,000원을 초과해요! 더 담을 수 없어요.'); return; }
+  }
+  if(next<=0) G.bag.delete(id);
+  else G.bag.set(id,next);
+  renderRpItems();
+  renderRpAdd();
+  updateRpTotal();
+}
+function renderRpAdd(){
+  const el=document.getElementById('rpAddList');
+  const notInBag=FOODS.filter(f=>!G.bag.has(f.id));
+  if(notInBag.length===0){el.innerHTML='<span style="font-size:.82rem;color:#ccc;">모두 담겨 있어요!</span>';return;}
+  el.innerHTML=notInBag.map(f=>`
+    <div class="add-chip" onclick="rpAdd('${f.id}')">
+      <span>${f.e}</span><span>${f.name}</span>
+      <span style="color:var(--a2);font-weight:700;font-size:.75rem;">${getP(f.id).toLocaleString()}원</span>
+      <span class="rp-btn rp-plus" style="width:22px;height:22px;font-size:.85rem;line-height:22px;">+</span>
+    </div>`).join('');
+}
+function rpRemove(id){ G.bag.delete(id); renderRpItems();renderRpAdd();updateRpTotal(); }
+function rpAdd(id){ if(!G.bag.has(id)) G.bag.set(id,1); renderRpItems();renderRpAdd();updateRpTotal(); }
+function updateRpTotal(){
+  const cur=calcUsed(); // extraSpend 이미 포함됨
+  const delta=cur-_rpBase;
+  document.getElementById('rpTotal').textContent=cur.toLocaleString()+'원';
+  const dEl=document.getElementById('rpDelta');
+  if(delta>0){dEl.textContent='+'+delta.toLocaleString()+'원';dEl.style.color='#E74C3C';}
+  else if(delta<0){dEl.textContent=delta.toLocaleString()+'원';dEl.style.color='#27AE60';}
+  else{dEl.textContent='±0원';dEl.style.color='#aaa';}
+}
+function repackDone(){
+  G.evIdx++;
+  showEvent();
+}
+
+/* SAVINGS */
+function showSavings(){
+  go('s-savings');
+  const bagCost=(()=>{let s=0;G.bag.forEach((qty,id)=>s+=getP(id)*qty);return s;})();
+  const totalSpend=bagCost+G.extraSpend;          // 실제 쓴 돈
+  const remaining=BASE_BUDGET+G.bonus-totalSpend; // 진짜 남은 돈
+  const rows=(()=>{let r='';G.bag.forEach((qty,id)=>{const f=getF(id),p=getP(id);r+=`<div class="fl-row"><span>${f.e} ${f.name}${qty>1?` ×${qty}`:''}</span><span>${(p*qty).toLocaleString()}원</span></div>`;});return r;})();
+  document.getElementById('savCard').innerHTML=`
+    <div style="text-align:center;">
+      <span class="savicon">🎒</span>
+      <h2 class="savttl">최종 도시락 완성!</h2>
+      <p style="font-size:.88rem;color:#aaa;margin-bottom:.9rem;">10가지 돌발상황을 모두 통과했어요!</p>
+    </div>
+    <div class="final-list">
+      <div class="fl-ttl">🧾 최종 도시락 물품</div>
+      ${rows||'<div class="fl-row"><span>담은 음식 없음</span><span>-</span></div>'}
+      ${G.extraSpend>0?`<div class="fl-row"><span>🛍 도시락통 빌리기</span><span>${G.extraSpend.toLocaleString()}원</span></div>`:''}
+      <hr class="fl-div">
+      <div class="fl-row"><span class="fl-total">총 사용 금액</span><span class="fl-total">${totalSpend.toLocaleString()}원</span></div>
+    </div>
+    <div style="text-align:center;margin-bottom:1rem;">
+      <div style="font-family:'Jua',sans-serif;font-size:1.3rem;color:#27AE60;">💰 남은 돈: ${remaining.toLocaleString()}원</div>
+      <div style="font-size:.82rem;color:#aaa;margin-top:.3rem;">(예산 ${(BASE_BUDGET+G.bonus).toLocaleString()}원 − 사용 ${totalSpend.toLocaleString()}원)</div>
+    </div>
+    ${remaining>0?`
+      <p class="savq">남은 <strong>${remaining.toLocaleString()}원</strong>을 어떻게 할까요?</p>
+      <div class="sav-choices">
+        <button class="bchoice ca" onclick="finishGame('spend',${totalSpend},${remaining})">🛒 남은 돈으로 더 사고 싶은 거 사기!<br><span class="choice-tag tag-spend">더 소비하기</span></button>
+        <button class="bchoice cb" onclick="finishGame('save',${totalSpend},${remaining})">🐷 저금통에 모두 저축하기!<br><span class="choice-tag tag-save">저축하기</span></button>
+      </div>`
+    :`<div style="text-align:center;"><button class="btn bg" onclick="finishGame('zero',${totalSpend},0)">🏁 결과 보기!</button></div>`}`;
+}
+
+/* RESULT */
+function finishGame(fc, totalSpend, remaining){
+  const isSave=(fc==='save');
+  const totalSaved=isSave?remaining:0;
+  G.choices.push({ev:'final', tag: isSave?'절약':'소비'});
+  go('s-result');
+
+  const bagCost=totalSpend-G.extraSpend;
+  const items=[...G.bag.keys()];
+  const receiptRows=items.map(id=>{
+    const f=getF(id),p=getP(id),qty=G.bag.get(id);
+    return `<div class="fl-row"><span>${f.e} ${f.name}${qty>1?` ×${qty}`:''}</span><span>${(p*qty).toLocaleString()}원</span></div>`;
+  }).join('');
+
+  const spendCnt=G.choices.filter(c=>c.tag==='소비').length;
+  const saveCnt=G.choices.filter(c=>c.tag==='절약').length;
+  const soc=G.social;
+
+  let type;
+  if(soc>=4) type='social';
+  else if(saveCnt>=8) type='supersaver';
+  else if(spendCnt>=8) type='gourmet';
+  else if(saveCnt>=spendCnt) type='rational';
+  else type='balanced';
+
+  const TYPES={
+    gourmet:{icon:'👑',name:'미식가 플래너',color:'#E74C3C',bg:'#FEECEC',
+      desc:'좋아하는 음식에 과감하게 투자하는 소비자예요! 맛과 즐거움을 가장 중요하게 생각하고, 하고 싶은 것을 위해 기꺼이 돈을 써요.',
+      traits:['욕구 중심','과감한 선택','맛 최우선'],
+      lesson:'원하는 것(Wants)과 필요한 것(Needs)의 차이를 알면 더 현명한 소비를 할 수 있어요! 가끔은 꼭 필요한 것도 챙겨봐요.'},
+    supersaver:{icon:'🐷',name:'절약왕 플래너',color:'#27AE60',bg:'#E8F8F5',
+      desc:'돈을 정말 잘 아끼는 알뜰한 소비자예요! 불필요한 지출을 줄이고 미래를 위해 저축하는 현명한 습관을 가지고 있어요.',
+      traits:['절약 중심','계획적','미래 대비'],
+      lesson:'저축은 정말 훌륭해요! 하지만 가끔은 현재의 즐거움도 소중해요. 소비와 저축의 균형을 맞춰봐요 🐷'},
+    social:{icon:'🤝',name:'나눔왕 플래너',color:'#E67E22',bg:'#FEF5E7',
+      desc:'친구와 나누고 함께하는 것을 가장 중요하게 생각해요! 나 혼자보다 모두 함께가 더 행복하다는 걸 아는 따뜻한 소비자예요.',
+      traits:['나눔 중심','따뜻한 마음','공동체 우선'],
+      lesson:'나눔과 배려는 정말 소중한 가치예요! 나 자신도 잘 챙기면서 함께하는 소비도 실천해봐요 💛'},
+    rational:{icon:'📊',name:'합리적 플래너',color:'#2980B9',bg:'#EBF5FB',
+      desc:'필요한 것과 예산을 꼼꼼하게 따지며 합리적으로 소비해요! 돌발상황에도 침착하게 최선의 선택을 하는 영리한 소비자예요.',
+      traits:['필요 중심','분석적','침착한 대처'],
+      lesson:'합리적 소비는 정말 훌륭해요! 필요한 것도 잘 챙기면서 가끔은 좋아하는 것도 즐겨봐요 📊'},
+    balanced:{icon:'⚖️',name:'균형잡힌 플래너',color:'#8E44AD',bg:'#F3E8FF',
+      desc:'소비와 절약을 균형 있게 조절하는 유연한 소비자예요! 상황에 따라 지혜롭게 판단하며 즐거움도 챙기고 저축도 해요.',
+      traits:['균형 중심','유연한 판단','상황 대처'],
+      lesson:'소비와 저축의 균형을 잘 맞추는 멋진 소비자예요! 앞으로도 이 균형 감각을 유지해봐요 ⚖️'},
+  };
+  const T=TYPES[type];
+  const total=G.choices.length;
+  const spPct=Math.round(spendCnt/total*100);
+  const svPct=Math.round(saveCnt/total*100);
+  const socPct=Math.min(Math.round(soc/6*100),100);
+
+  document.getElementById('resCard').innerHTML=`
+    <div class="rbadge" style="background:${T.bg};color:${T.color}">${T.name}</div>
+    <span class="ricon">${T.icon}</span>
+    <h2 class="rname" style="color:${T.color}">${T.name}</h2>
+    <p class="rdesc">${T.desc}</p>
+    <div class="traits">${T.traits.map(t=>`<span class="tpill">#${t}</span>`).join('')}</div>
+    <div class="score-bars">
+      ${bar('💸 소비 성향',spPct,'#FF6B6B')}
+      ${bar('🐷 절약 성향',svPct,'#27AE60')}
+      ${bar('🤝 나눔 성향',socPct,'#E67E22')}
+    </div>
+    <div class="final-list" style="margin-bottom:1rem;">
+      <div class="fl-ttl">🧾 최종 결산</div>
+      ${receiptRows||'<div class="fl-row"><span>담은 음식 없음</span><span>-</span></div>'}
+      ${G.extraSpend>0?`<div class="fl-row"><span>🛍 도시락통 빌리기</span><span>${G.extraSpend.toLocaleString()}원</span></div>`:''}
+      <hr class="fl-div">
+      <div class="fl-row"><span class="fl-total">총 지출</span><span class="fl-total">${totalSpend.toLocaleString()}원</span></div>
+      ${totalSaved>0?`<div class="fl-row"><span class="fl-save">💰 저축</span><span class="fl-save">+${totalSaved.toLocaleString()}원</span></div>`:''}
+      <hr class="fl-div">
+      <div class="fl-row">
+        <span style="font-family:'Jua',sans-serif;font-size:.85rem;color:#555;">예산 ${(BASE_BUDGET+G.bonus).toLocaleString()}원</span>
+        <span style="font-family:'Jua',sans-serif;font-size:.85rem;color:#555;">지출 ${totalSpend.toLocaleString()}원 + 저축 ${totalSaved.toLocaleString()}원</span>
+      </div>
+    </div>
+    <div class="lbox"><div class="lttl">💡 오늘의 배움</div><div class="ltxt">${T.lesson}</div></div>
+    <button class="btn bg" onclick="resetGame()">🔄 다시 해보기</button>`;
+}
+function bar(lbl,pct,color){
+  return `<div class="sbar-row"><span class="sbar-lbl">${lbl}</span><div class="sbar-track"><div class="sbar-fill" style="width:${pct}%;background:${color};"></div></div><span class="sbar-val">${pct}%</span></div>`;
+}
+
+/* UTILS */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+function resetGame(){
+  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,choices:[],evIdx:0};
+  buildDrag('likeList',G.likeRank);
+  buildDrag('needList',G.needRank);
+  renderShopGrid('menuGrid','mc_',updateBag);
+  document.getElementById('bFill').style.width='0%';
+  document.getElementById('bFill').className='bfill';
+  document.getElementById('usedAmt').textContent='0원';
+  document.getElementById('ttlScore').textContent='0';
+  document.getElementById('bagList').innerHTML='<div class="bempty">아직 비어있어요!</div>';
+  document.getElementById('btnCheckout').disabled=true;
+  document.getElementById('evProg').innerHTML='';
+  go('s-intro');
+}
+</script>
+</body>
+</html>
