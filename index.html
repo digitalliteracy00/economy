@@ -53,8 +53,8 @@ body{font-family:'Gaegu',cursive;background:linear-gradient(180deg,var(--sky1) 0
 .dlist{display:flex;flex-direction:column;gap:.45rem;width:100%;max-width:680px;}
 .drow{display:flex;align-items:center;gap:.75rem;background:var(--card);border-radius:13px;padding:.6rem .95rem;box-shadow:0 2px 10px var(--sh);cursor:grab;border:2px solid transparent;user-select:none;transition:all .2s;}
 .drow:hover{transform:translateX(3px);border-color:var(--border);}
-.drow.dragging{opacity:.45;}
-.drow.drag-over{border-color:var(--a3);background:#f0fffc;}
+.drow.dragging{opacity:.5;transform:scale(.97);box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.drow.drag-over{border-color:var(--a3);background:#f0fffc;transform:scale(1.02);}
 .drank{font-family:'Jua',sans-serif;font-size:1rem;color:#bbb;min-width:28px;}
 .drank.hi{color:var(--a2);}
 .demoji{font-size:1.7rem;}
@@ -489,6 +489,8 @@ function buildDrag(cid,arr){
     const f=getF(id),row=document.createElement('div');
     row.className='drow';row.draggable=true;row.dataset.id=id;
     row.innerHTML=`<span class="drank${i<3?' hi':''}">${i+1}위</span><span class="demoji">${f.e}</span><span class="dinfo"><span class="dname">${f.name}</span><br><span class="dprice">${f.price.toLocaleString()}원</span></span><span class="dhandle">⠿</span>`;
+
+    // 마우스 드래그
     row.addEventListener('dragstart',()=>{window._ds=row;row.classList.add('dragging');});
     row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.drag-over').forEach(e=>e.classList.remove('drag-over'));});
     row.addEventListener('dragover',e=>{e.preventDefault();if(row!==window._ds)row.classList.add('drag-over');});
@@ -501,6 +503,35 @@ function buildDrag(cid,arr){
         buildDrag(cid,arr);
       }
     });
+
+    // 터치 드래그 (갤럭시 탭 등 터치스크린)
+    row.addEventListener('touchstart',e=>{
+      window._ts=row;
+      window._tsY=e.touches[0].clientY;
+      row.classList.add('dragging');
+      e.stopPropagation();
+    },{passive:true});
+    row.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      const touch=e.touches[0];
+      const target=document.elementFromPoint(touch.clientX,touch.clientY);
+      const targetRow=target?.closest('.drow');
+      document.querySelectorAll('.drow.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      if(targetRow&&targetRow!==window._ts) targetRow.classList.add('drag-over');
+    },{passive:false});
+    row.addEventListener('touchend',e=>{
+      row.classList.remove('dragging');
+      const touch=e.changedTouches[0];
+      const target=document.elementFromPoint(touch.clientX,touch.clientY);
+      const targetRow=target?.closest('.drow');
+      document.querySelectorAll('.drow.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      if(targetRow&&targetRow!==window._ts&&window._ts){
+        const fi=arr.indexOf(window._ts.dataset.id),ti=arr.indexOf(targetRow.dataset.id);
+        if(fi!==-1&&ti!==-1){[arr[fi],arr[ti]]=[arr[ti],arr[fi]];buildDrag(cid,arr);}
+      }
+      window._ts=null;
+    });
+
     el.appendChild(row);
   });
 }
