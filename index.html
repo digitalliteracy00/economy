@@ -611,7 +611,7 @@ function renderShopGrid(gridId,pfx,updFn){
       <div class="mcr"><span style="color:#FF6B6B;">❤️좋아하는 순위 ${lr}위</span></div>
       <div class="mcr"><span style="color:#A78BFA;">🎯필요한 순위 ${nr}위</span></div>
       <div class="qty-ctrl" onclick="event.stopPropagation()">
-        <button class="qty-btn qty-m" ${isReq?'disabled style="opacity:.3;cursor:not-allowed;"':''} onclick="changeQty('${f.id}','${pfx}',${updFn.name},-1)">−</button>
+        <button class="qty-btn qty-m" ${isReq && qty<=1 ? 'disabled style="opacity:.3;cursor:not-allowed;"' : ''} onclick="changeQty('${f.id}','${pfx}',${updFn.name},-1)">−</button>
         <span class="qty-num" id="${pfx}qty_${f.id}">${qty}</span>
         <button class="qty-btn qty-p" onclick="changeQty('${f.id}','${pfx}',${updFn.name},1)">+</button>
       </div>`;
@@ -626,7 +626,7 @@ function changeQty(id, pfx, updFn, delta){
   const next=cur+delta;
   if(next<0) return;
   if(next===0 && REQUIRED_ITEMS.has(id)){
-    showPopup('🔒','필수 품목!',`${getF(id).name}은(는) 필수 품목이에요!<br>빼거나 0개로 줄일 수 없어요.`,()=>{});
+    showPopup('🔒','필수 품목!',`${getF(id).name}은(는) 필수 품목이에요!<br>최소 1개는 꼭 있어야 해요.`,()=>{});
     return;
   }
   if(delta>0){
@@ -640,14 +640,22 @@ function changeQty(id, pfx, updFn, delta){
   }
   if(next===0) G.bag.delete(id);
   else G.bag.set(id,next);
-  const card=document.getElementById(pfx+id);
-  if(card){
-    card.classList.toggle('inbag',next>0);
-    const qEl=document.getElementById(`${pfx}qty_${id}`);
-    if(qEl) qEl.textContent=next;
+
+  // 카드 전체 다시 그려서 버튼 상태 정확히 반영
+  if(document.getElementById(pfx+id)){
+    const gridId = pfx==='mc_' ? 'menuGrid' : (pfx==='rmc_' ? 'repackGrid' : null);
+    if(gridId) renderShopGrid(gridId, pfx, updFn);
+    else {
+      // 개별 카드만 업데이트 (fallback)
+      const card=document.getElementById(pfx+id);
+      if(card){
+        card.classList.toggle('inbag',next>0);
+        const qEl=document.getElementById(`${pfx}qty_${id}`);
+        if(qEl) qEl.textContent=next;
+      }
+    }
   }
   updFn();
-  // 예산 가득 찼으면 추가 불가 표시
   refreshOverBudgetState(pfx);
 }
 
@@ -699,14 +707,15 @@ function _upd(fillId,amtId,listId,scoreId,pfx,isMain){
     const row=document.createElement('div');
     row.className='brow';
     const isReq=REQUIRED_ITEMS.has(id);
+    const minusDisabled = isReq && qty<=1;
     row.innerHTML=`
       <span class="brl"><span>${f.e}</span><span style="font-family:'Jua',sans-serif;">${f.name}</span>${isReq?'<span style="background:#27AE60;color:#fff;border-radius:6px;padding:0 4px;font-size:.62rem;font-family:\'Jua\',sans-serif;">필수</span>':''}</span>
       <span style="display:flex;align-items:center;gap:4px;">
-        <button class="brm" style="background:#eee;color:#666;" onclick="changeQty('${id}','${pfx}',${updFnName},-1)" ${isReq?'disabled style="opacity:.3;cursor:not-allowed;"':''}>−</button>
+        <button class="brm" style="background:#eee;color:#666;${minusDisabled?'opacity:.3;cursor:not-allowed;':''}" onclick="changeQty('${id}','${pfx}',${updFnName},-1)" ${minusDisabled?'disabled':''}>−</button>
         <span style="font-family:'Jua',sans-serif;font-size:.9rem;color:#333;min-width:14px;text-align:center;">${qty}</span>
         <button class="brm" style="background:#c8f0c8;color:#27AE60;" onclick="changeQty('${id}','${pfx}',${updFnName},1)">+</button>
         <span style="color:#E67E22;font-weight:700;font-size:.78rem;min-width:46px;text-align:right;">${(p*qty).toLocaleString()}원</span>
-        ${isReq?'':'<button class="brm" onclick="changeQty(\''+id+'\',\''+pfx+'\','+updFnName+',-'+qty+')">✕</button>'}
+        ${isReq && qty<=1 ? '' : '<button class="brm" onclick="changeQty(\''+id+'\',\''+pfx+'\','+updFnName+',-'+qty+')">✕</button>'}
       </span>`;
     list.appendChild(row);
   });
