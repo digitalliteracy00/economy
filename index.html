@@ -345,7 +345,7 @@ const BASE_BUDGET=10000;
 const EVENTS=[
   {
     id:'e1',icon:'📈',title:'닭강정 가격이 올랐어요!',
-    story:'닭고기 공급이 줄어서 닭강정 가격이 6,000원 → 9,000원으로 뛰었어요!',
+    story:'닭고기 공급이 줄어서 닭강정 가격이 3,000원 → 4,000원으로 뛰었어요!',
     effect:'닭강정이 담겨 있다면 예산을 초과할 수 있어요.',
     q:'어떻게 할까요?',
     cA:{t:'💸 비싸도 닭강정은 꼭 먹어야 해!',sub:'4,500원 — 더 쓰기',tag:'소비'},
@@ -374,7 +374,7 @@ const EVENTS=[
     q:'어떻게 할까요?',
     cA:{t:'☔ 우산 사야지! 비 맞으면 안 되지',sub:'1,000원 추가 — 더 쓰기',tag:'소비'},
     cB:{t:'🏃 친구 우산 같이 쓸게요',sub:'추가 지출 없음 — 절약',tag:'절약'},
-    applyA:G=>{ G.extraSpend+=1000; },
+    applyA:G=>{ G.umbrellaSpend=1000; },
     applyB:G=>{ },
     msgA:'우산을 샀어요! 1,000원이 추가로 들었어요.',
     msgB:'친구 우산을 같이 쓰기로 했어요! 돈을 아꼈어요.',
@@ -477,7 +477,7 @@ let G={
   needRank:FOODS.map(f=>f.id),
   bag:new Map(),
   prices:{},
-  saved:0,social:0,bonus:0,extraSpend:0,
+  saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,
   choices:[],evIdx:0,
   evLogs:[],  // 누적 내역
 };
@@ -489,7 +489,7 @@ function calcUsed(g){
   g=g||G;
   let s=0;
   g.bag.forEach((qty,id)=>s+=getP(id)*qty);
-  return s+g.extraSpend;
+  return s+g.extraSpend+(g.umbrellaSpend||0);
 }
 function bagQty(id){return G.bag.get(id)||0;}
 function bagHas(id){return G.bag.has(id)&&G.bag.get(id)>0;}
@@ -786,6 +786,12 @@ function renderEvRpItems(){
     row.innerHTML=`<span class="rp-row-left"><span>🛍</span><span style="font-family:'Jua',sans-serif;color:#b36000;font-size:.85rem;">도시락통 빌리기</span></span><span class="rp-ctrl"><span class="rp-price" style="color:#E67E22;">+${G.extraSpend.toLocaleString()}원</span></span>`;
     el.appendChild(row);
   }
+  if(G.umbrellaSpend>0){
+    const row=document.createElement('div');
+    row.className='rp-row';row.style.background='#EEF6FF';
+    row.innerHTML=`<span class="rp-row-left"><span>☔</span><span style="font-family:'Jua',sans-serif;color:#1a5276;font-size:.85rem;">우산</span></span><span class="rp-ctrl"><span class="rp-price" style="color:#2980B9;">+${G.umbrellaSpend.toLocaleString()}원</span></span>`;
+    el.appendChild(row);
+  }
   const used=calcUsed(),total=totalBudget();
   const pct=Math.min(used/total*100,100);
   const fill=document.getElementById('evBFill');
@@ -871,6 +877,7 @@ function showSavings(){
       <div class="fl-ttl">🧾 최종 도시락 물품</div>
       ${rows||'<div class="fl-row"><span>담은 음식 없음</span><span>-</span></div>'}
       ${G.extraSpend>0?`<div class="fl-row"><span>🛍 도시락통 빌리기</span><span>${G.extraSpend.toLocaleString()}원</span></div>`:''}
+      ${G.umbrellaSpend>0?`<div class="fl-row"><span>☔ 우산</span><span>${G.umbrellaSpend.toLocaleString()}원</span></div>`:''}
       <hr class="fl-div">
       <div class="fl-row"><span class="fl-total">총 사용 금액</span><span class="fl-total">${totalSpend.toLocaleString()}원</span></div>
     </div>
@@ -894,7 +901,7 @@ function finishGame(fc, totalSpend, remaining){
   G.choices.push({ev:'final', tag: isSave?'절약':'소비'});
   go('s-result');
 
-  const bagCost=totalSpend-G.extraSpend;
+  const bagCost=totalSpend-G.extraSpend-(G.umbrellaSpend||0);
   const items=[...G.bag.keys()];
   const receiptRows=items.map(id=>{
     const f=getF(id),p=getP(id),qty=G.bag.get(id);
@@ -955,6 +962,7 @@ function finishGame(fc, totalSpend, remaining){
       <div class="fl-ttl">🧾 최종 결산</div>
       ${receiptRows||'<div class="fl-row"><span>담은 음식 없음</span><span>-</span></div>'}
       ${G.extraSpend>0?`<div class="fl-row"><span>🛍 도시락통 빌리기</span><span>${G.extraSpend.toLocaleString()}원</span></div>`:''}
+      ${G.umbrellaSpend>0?`<div class="fl-row"><span>☔ 우산</span><span>${G.umbrellaSpend.toLocaleString()}원</span></div>`:''}
       <hr class="fl-div">
       <div class="fl-row"><span class="fl-total">총 지출</span><span class="fl-total">${totalSpend.toLocaleString()}원</span></div>
       ${totalSaved>0?`<div class="fl-row"><span class="fl-save">💰 저축</span><span class="fl-save">+${totalSaved.toLocaleString()}원</span></div>`:''}
@@ -983,7 +991,7 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),2400);
 }
 function resetGame(){
-  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,choices:[],evIdx:0,evLogs:[]};
+  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,choices:[],evIdx:0,evLogs:[]};
   buildDrag('likeList',G.likeRank);
   buildDrag('needList',G.needRank);
   renderShopGrid('menuGrid','mc_',updateBag);
