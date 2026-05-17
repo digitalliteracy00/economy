@@ -341,6 +341,7 @@ const FOODS=[
   {id:'jelly',   name:'젤리',       e:'🍬',price:700},
 ];
 const BASE_BUDGET=10000;
+const REQUIRED_ITEMS=new Set(['gimbap','water','fruit']); // 필수 품목
 
 const EVENTS=[
   {
@@ -527,7 +528,15 @@ function finishRankLike(){
 
 function finishRankNeed(){
   const top3=G.needRank.slice(0,3).map((id,i)=>{const f=getF(id);return `${i+1}위 ${f.e} ${f.name}`;}).join(' · ');
-  showPopup('🎯','필요한 순위 완료!',`꼭 필요한 음식 TOP 3<br><br><b>${top3}</b><br><br>이제 예산 10,000원으로 도시락을 싸봐요!`,()=>{renderShopGrid('menuGrid','mc_',updateBag);go('s-shop');});
+  showPopup('🎯','필요한 순위 완료!',`꼭 필요한 음식 TOP 3<br><br><b>${top3}</b><br><br>이제 예산 10,000원으로 도시락을 싸봐요!<br><br><span style="font-size:.85rem;color:#27AE60;">🔒 김밥·생수·과일컵은 필수 품목이에요!</span>`,()=>{
+    // 필수 품목 미리 담기
+    G.bag.set('gimbap',1);
+    G.bag.set('water',1);
+    G.bag.set('fruit',1);
+    renderShopGrid('menuGrid','mc_',updateBag);
+    updateBag();
+    go('s-shop');
+  });
 }
 
 /* DRAG */
@@ -590,17 +599,19 @@ function renderShopGrid(gridId,pfx,updFn){
   FOODS.forEach(f=>{
     const qty=bagQty(f.id),p=getP(f.id);
     const lr=G.likeRank.indexOf(f.id)+1,nr=G.needRank.indexOf(f.id)+1;
+    const isReq=REQUIRED_ITEMS.has(f.id);
     const div=document.createElement('div');
     div.className='mc'+(qty>0?' inbag':'');div.id=pfx+f.id;
     div.innerHTML=`
       <div class="ck">✓</div>
+      ${isReq?'<div style="position:absolute;top:5px;left:5px;background:#27AE60;color:#fff;border-radius:8px;padding:1px 5px;font-size:.58rem;font-family:\'Jua\',sans-serif;">필수</div>':''}
       <span class="mce">${f.e}</span>
       <div class="mcn">${f.name}</div>
       <span class="mcp">${p.toLocaleString()}원</span>
       <div class="mcr"><span style="color:#FF6B6B;">❤️좋아하는 순위 ${lr}위</span></div>
       <div class="mcr"><span style="color:#A78BFA;">🎯필요한 순위 ${nr}위</span></div>
       <div class="qty-ctrl" onclick="event.stopPropagation()">
-        <button class="qty-btn qty-m" onclick="changeQty('${f.id}','${pfx}',${updFn.name},-1)">−</button>
+        <button class="qty-btn qty-m" ${isReq?'disabled style="opacity:.3;cursor:not-allowed;"':''} onclick="changeQty('${f.id}','${pfx}',${updFn.name},-1)">−</button>
         <span class="qty-num" id="${pfx}qty_${f.id}">${qty}</span>
         <button class="qty-btn qty-p" onclick="changeQty('${f.id}','${pfx}',${updFn.name},1)">+</button>
       </div>`;
@@ -614,6 +625,10 @@ function changeQty(id, pfx, updFn, delta){
   const cur=bagQty(id);
   const next=cur+delta;
   if(next<0) return;
+  if(next===0 && REQUIRED_ITEMS.has(id)){
+    showPopup('🔒','필수 품목!',`${getF(id).name}은(는) 필수 품목이에요!<br>빼거나 0개로 줄일 수 없어요.`,()=>{});
+    return;
+  }
   if(delta>0){
     const afterCost=calcUsed()+p;
     if(afterCost>totalBudget()){
@@ -683,14 +698,15 @@ function _upd(fillId,amtId,listId,scoreId,pfx,isMain){
     const f=getF(id),p=getP(id);
     const row=document.createElement('div');
     row.className='brow';
+    const isReq=REQUIRED_ITEMS.has(id);
     row.innerHTML=`
-      <span class="brl"><span>${f.e}</span><span style="font-family:'Jua',sans-serif;">${f.name}</span></span>
+      <span class="brl"><span>${f.e}</span><span style="font-family:'Jua',sans-serif;">${f.name}</span>${isReq?'<span style="background:#27AE60;color:#fff;border-radius:6px;padding:0 4px;font-size:.62rem;font-family:\'Jua\',sans-serif;">필수</span>':''}</span>
       <span style="display:flex;align-items:center;gap:4px;">
-        <button class="brm" style="background:#eee;color:#666;" onclick="changeQty('${id}','${pfx}',${updFnName},-1)">−</button>
+        <button class="brm" style="background:#eee;color:#666;" onclick="changeQty('${id}','${pfx}',${updFnName},-1)" ${isReq?'disabled style="opacity:.3;cursor:not-allowed;"':''}>−</button>
         <span style="font-family:'Jua',sans-serif;font-size:.9rem;color:#333;min-width:14px;text-align:center;">${qty}</span>
         <button class="brm" style="background:#c8f0c8;color:#27AE60;" onclick="changeQty('${id}','${pfx}',${updFnName},1)">+</button>
         <span style="color:#E67E22;font-weight:700;font-size:.78rem;min-width:46px;text-align:right;">${(p*qty).toLocaleString()}원</span>
-        <button class="brm" onclick="changeQty('${id}','${pfx}',${updFnName},-${qty})">✕</button>
+        ${isReq?'':'<button class="brm" onclick="changeQty(\''+id+'\',\''+pfx+'\','+updFnName+',-'+qty+')">✕</button>'}
       </span>`;
     list.appendChild(row);
   });
@@ -1068,6 +1084,7 @@ function toast(msg){
 }
 function resetGame(){
   G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,friendBag:0,choices:[],evIdx:0,evLogs:[]};
+  // 필수 품목은 초기화해도 담지 않음 (순위 완료 후 진입 시 담김)
   buildDrag('likeList',G.likeRank);
   buildDrag('needList',G.needRank);
   renderShopGrid('menuGrid','mc_',updateBag);
