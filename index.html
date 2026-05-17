@@ -280,7 +280,7 @@ body{font-family:'Gaegu',cursive;font-size:var(--fs-base);background:linear-grad
         <div class="bag-panel" id="evBagPanel">
           <div class="bag-ttl">🎒 내 도시락 통</div>
           <div class="bbar"><div class="bfill" id="evBFill" style="width:0%"></div></div>
-          <div class="bnums"><span class="bu" id="evUsed">0원</span><span id="evBudgetLbl">/ 10,000원</span></div>
+          <div class="bnums"><span class="bu" id="evUsed">0원</span><span id="evBudgetLbl">/ <span id="evBudgetMax"></span></span></div>
 
           <!-- 선택 전: 잠금 오버레이 -->
           <div id="evBagLock" style="text-align:center;padding:2rem 1rem;color:#ccc;">
@@ -348,11 +348,11 @@ const EVENTS=[
     story:'닭고기 공급이 줄어서 닭강정 가격이 3,000원 → 4,000원으로 뛰었어요!',
     effect:'닭강정이 담겨 있다면 예산을 초과할 수 있어요.',
     q:'어떻게 할까요?',
-    cA:{t:'💸 비싸도 닭강정은 꼭 먹어야 해!',sub:'4,500원 — 더 쓰기',tag:'소비'},
+    cA:{t:'💸 비싸도 닭강정은 꼭 먹어야 해!',sub:'4,000원 — 더 쓰기',tag:'소비'},
     cB:{t:'🔄 닭강정 빼고 다른 걸로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
-    applyA:G=>{ G.prices['chicken']=4500; },
-    applyB:G=>{ G.bag.delete('chicken'); G.prices['chicken']=4500; },
-    msgA:'닭강정을 4,500원에 사기로 했어요! 예산이 빠듯해요. 도시락을 다시 맞춰보세요.',
+    applyA:G=>{ G.prices['chicken']=4000; },
+    applyB:G=>{ G.bag.delete('chicken'); G.prices['chicken']=4000; },
+    msgA:'닭강정을 4,000원에 사기로 했어요! 예산이 빠듯해요. 도시락을 다시 맞춰보세요.',
     msgB:'닭강정을 뺐어요. 남은 예산으로 도시락을 다시 채워보세요!',
   },
   {
@@ -385,7 +385,7 @@ const EVENTS=[
     effect:'오렌지주스를 따로 사지 않아도 돼요.',
     q:'어떻게 할까요?',
     cA:{t:'🥤 선생님 주스 + 내 주스, 두 개 다 마실래요',sub:'그대로 유지 — 더 소비',tag:'소비'},
-    cB:{t:'💰 내 주스 빼고 2,000원 아낄게요',sub:'지출 줄이기',tag:'절약'},
+    cB:{t:'💰 내 주스 빼고 1,000원 아낄게요',sub:'지출 줄이기',tag:'절약'},
     applyA:G=>{ },
     applyB:G=>{ G.bag.delete('juice'); },
     msgA:'주스 두 개 마시기로 했어요! 도시락을 확인해봐요.',
@@ -398,7 +398,7 @@ const EVENTS=[
     q:'어떻게 할까요?',
     cA:{t:'🛍 더 큰 도시락 통을 1,000원에 빌릴게요',sub:'1,000원 추가 — 더 쓰기',tag:'소비'},
     cB:{t:'🎯 4가지만 골라서 담을게요',sub:'지출 줄이기',tag:'절약'},
-    applyA:G=>{ G.extraSpend+=1000; },
+    applyA:G=>{ G.extraSpend=1000; },
     applyB:G=>{
       const items=[...G.bag.keys()];
       if(items.length>4){
@@ -407,19 +407,19 @@ const EVENTS=[
         [...G.bag.keys()].forEach(id=>{ if(!keep.has(id)) G.bag.delete(id); });
       }
     },
-    msgA:'큰 통을 빌렸어요! 2,000원이 추가로 들었어요. 도시락을 확인해봐요.',
+    msgA:'큰 통을 빌렸어요! 1,000원이 추가로 들었어요. 도시락을 확인해봐요.',
     msgB:'4가지만 담기로 했어요! 가장 필요한 것 위주로 정리해봐요.',
   },
   {
     id:'e6',icon:'🍓',title:'과일값이 폭등했어요!',
-    story:'태풍으로 과일 농사가 망했대요! 과일컵 가격이 3,000원 → 5,500원이 됐어요.',
+    story:'태풍으로 과일 농사가 망했대요! 과일컵 가격이 1,500원 → 3,000원이 됐어요.',
     effect:'과일컵이 있다면 예산이 빠듯해져요.',
     q:'어떻게 할까요?',
-    cA:{t:'😤 비싸도 과일은 꼭 먹어야 해!',sub:'2,700원 — 더 쓰기',tag:'소비'},
+    cA:{t:'😤 비싸도 과일은 꼭 먹어야 해!',sub:'3,000원 — 더 쓰기',tag:'소비'},
     cB:{t:'🔄 과일컵 빼고 젤리·쿠키로 바꿀게요',sub:'지출 줄이기',tag:'절약'},
-    applyA:G=>{ G.prices['fruit']=2700; },
-    applyB:G=>{ G.bag.delete('fruit'); G.prices['fruit']=2700; },
-    msgA:'과일컵을 2,700원에 사기로 했어요! 도시락을 다시 맞춰보세요.',
+    applyA:G=>{ G.prices['fruit']=3000; },
+    applyB:G=>{ G.bag.delete('fruit'); G.prices['fruit']=3000; },
+    msgA:'과일컵을 3,000원에 사기로 했어요! 도시락을 다시 맞춰보세요.',
     msgB:'과일컵을 뺐어요. 남은 예산으로 다시 채워보세요!',
   },
   {
@@ -429,7 +429,7 @@ const EVENTS=[
     q:'어떻게 할까요?',
     cA:{t:'🍙 짝꿍 몫으로 김밥 하나 더 사줄게요',sub:'2,500원 추가 — 더 쓰기',tag:'소비'},
     cB:{t:'💞 내 도시락 반씩 나눠 먹어요',sub:'추가 지출 없음 — 절약',tag:'절약'},
-    applyA:G=>{ G.extraSpend+=2500; G.social+=3; },
+    applyA:G=>{ G.friendBag=2500; G.social+=3; },
     applyB:G=>{ G.social+=3; },
     msgA:'짝꿍 김밥을 사줬어요! 따뜻한 마음이에요. 도시락을 확인해봐요.',
     msgB:'반씩 나눠 먹기로 했어요! 도시락을 확인해봐요.',
@@ -477,7 +477,7 @@ let G={
   needRank:FOODS.map(f=>f.id),
   bag:new Map(),
   prices:{},
-  saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,
+  saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,friendBag:0,
   choices:[],evIdx:0,
   evLogs:[],  // 누적 내역
 };
@@ -489,7 +489,7 @@ function calcUsed(g){
   g=g||G;
   let s=0;
   g.bag.forEach((qty,id)=>s+=getP(id)*qty);
-  return s+g.extraSpend+(g.umbrellaSpend||0);
+  return s+(g.extraSpend||0)+(g.umbrellaSpend||0)+(g.friendBag||0);
 }
 function bagQty(id){return G.bag.get(id)||0;}
 function bagHas(id){return G.bag.has(id)&&G.bag.get(id)>0;}
@@ -616,8 +616,8 @@ function changeQty(id, pfx, updFn, delta){
   if(next<0) return;
   if(delta>0){
     const afterCost=calcUsed()+p;
-    if(afterCost>BASE_BUDGET){
-      toast('🚫 예산 10,000원을 초과해요! 더 담을 수 없어요.');
+    if(afterCost>totalBudget()){
+      showPopup('🚫','예산 초과!','예산 10,000원을 초과해요!<br>다른 항목을 빼고 담아주세요.',()=>{});
       const el=document.getElementById(pfx+id);
       if(el){el.classList.add('shake');setTimeout(()=>el.classList.remove('shake'),400);}
       return;
@@ -637,7 +637,7 @@ function changeQty(id, pfx, updFn, delta){
 }
 
 function refreshOverBudgetState(pfx){
-  const remaining=BASE_BUDGET-calcUsed();
+  const remaining=totalBudget()-calcUsed();
   FOODS.forEach(f=>{
     const card=document.getElementById(pfx+f.id);
     if(!card) return;
@@ -738,6 +738,8 @@ function resetEvBag(){
   if(fill){fill.style.width=pct+'%';fill.className='bfill'+(pct>=100?' over':pct>=80?' warn':'');}
   const usedEl=document.getElementById('evUsed');
   if(usedEl) usedEl.textContent=used.toLocaleString()+'원';
+  const maxEl=document.getElementById('evBudgetMax');
+  if(maxEl) maxEl.textContent=total.toLocaleString()+'원';
   const lockEl=document.getElementById('evBagLock');
   const editEl=document.getElementById('evBagEdit');
   if(lockEl) lockEl.style.display='block';
@@ -754,7 +756,16 @@ function chooseEv(idx){
   const chosenMsg=document.getElementById('evChosenMsg');
   const chosenTxt=document.getElementById('evChosenText');
   if(chosenMsg) chosenMsg.style.display='block';
-  if(chosenTxt) chosenTxt.innerHTML='<b>'+ch.t+'</b><br>'+msg;
+
+  // 선택 후 예산 초과 여부 확인
+  const usedNow=calcUsed();
+  const overBudget=usedNow>totalBudget();
+  let extraMsg='';
+  if(overBudget){
+    extraMsg=`<div style="margin-top:.5rem;background:#FEECEC;border-radius:8px;padding:.4rem .7rem;color:#C0392B;font-size:.82rem;">⚠️ 예산 ${totalBudget().toLocaleString()}원을 초과했어요 (${usedNow.toLocaleString()}원)!<br>도시락에서 항목을 빼서 맞춰주세요.</div>`;
+  }
+  if(chosenTxt) chosenTxt.innerHTML='<b>'+ch.t+'</b><br>'+msg+extraMsg;
+
   const bagCostNow=(()=>{let s=0;G.bag.forEach((qty,id)=>s+=getP(id)*qty);return s;})();
   G.evLogs.push({num:G.evIdx+1,icon:ev.icon,title:ev.title,choice:ch.t,tag:ch.tag,msg:msg,bagCost:bagCostNow,extraSpend:G.extraSpend,bonus:G.bonus});
   renderEvLog();
@@ -766,6 +777,21 @@ function chooseEv(idx){
   renderEvRpItems();
   renderEvRpAdd();
   updateEvRpTotal();
+  refreshEvAddBtns();
+
+  // 완료 버튼 — 예산 초과 시 비활성화
+  const doneBtn=document.querySelector('#evBagEdit .btn.bp');
+  if(doneBtn){
+    if(overBudget){
+      doneBtn.disabled=true;
+      doneBtn.textContent='⚠️ 예산 초과! 항목을 빼주세요';
+      doneBtn.style.background='#ccc';
+    } else {
+      doneBtn.disabled=false;
+      doneBtn.textContent='✅ 정리 완료! 다음으로 →';
+      doneBtn.style.background='';
+    }
+  }
 }
 
 function renderEvRpItems(){
@@ -792,12 +818,20 @@ function renderEvRpItems(){
     row.innerHTML=`<span class="rp-row-left"><span>☔</span><span style="font-family:'Jua',sans-serif;color:#1a5276;font-size:.85rem;">우산</span></span><span class="rp-ctrl"><span class="rp-price" style="color:#2980B9;">+${G.umbrellaSpend.toLocaleString()}원</span></span>`;
     el.appendChild(row);
   }
+  if(G.friendBag>0){
+    const row=document.createElement('div');
+    row.className='rp-row';row.style.background='#FFF0F9';
+    row.innerHTML=`<span class="rp-row-left"><span>🍙</span><span style="font-family:'Jua',sans-serif;color:#8E44AD;font-size:.85rem;">짝꿍 김밥 사주기</span></span><span class="rp-ctrl"><span class="rp-price" style="color:#8E44AD;">+${G.friendBag.toLocaleString()}원</span></span>`;
+    el.appendChild(row);
+  }
   const used=calcUsed(),total=totalBudget();
   const pct=Math.min(used/total*100,100);
   const fill=document.getElementById('evBFill');
   if(fill){fill.style.width=pct+'%';fill.className='bfill'+(pct>=100?' over':pct>=80?' warn':'');}
   const usedEl=document.getElementById('evUsed');
   if(usedEl) usedEl.textContent=used.toLocaleString()+'원';
+  const maxEl=document.getElementById('evBudgetMax');
+  if(maxEl) maxEl.textContent=total.toLocaleString()+'원';
 }
 
 function renderEvRpAdd(){
@@ -810,26 +844,67 @@ function renderEvRpAdd(){
 
 function evRpChangeQty(id,delta){
   const cur=G.bag.get(id)||0,next=cur+delta;
-  if(delta>0&&calcUsed()+getP(id)>totalBudget()){toast('🚫 예산을 초과해요!');return;}
+  if(delta>0){
+    const after=calcUsed()+getP(id);
+    if(after>totalBudget()){
+      showPopup('🚫','예산 초과!','예산 10,000원을 초과해요!<br>다른 항목을 빼고 담아주세요.',()=>{});
+      return;
+    }
+  }
   if(next<=0)G.bag.delete(id);else G.bag.set(id,next);
   renderEvRpItems();renderEvRpAdd();updateEvRpTotal();
+  refreshEvAddBtns();
 }
 function evRpAdd(id){
-  if(!G.bag.has(id)){
-    if(calcUsed()+getP(id)>totalBudget()){toast('🚫 예산을 초과해요!');return;}
-    G.bag.set(id,1);
+  const after=calcUsed()+getP(id);
+  if(after>totalBudget()){
+    showPopup('🚫','예산 초과!','예산 10,000원을 초과해요!<br>다른 항목을 빼고 담아주세요.',()=>{});
+    return;
   }
+  G.bag.set(id,(G.bag.get(id)||0)+1);
   renderEvRpItems();renderEvRpAdd();updateEvRpTotal();
+  refreshEvAddBtns();
+}
+
+// 추가하기 칩의 + 버튼 예산 초과 시 비활성화
+function refreshEvAddBtns(){
+  const remaining=totalBudget()-calcUsed();
+  document.querySelectorAll('#evRpAddList .add-chip').forEach(chip=>{
+    const id=chip.getAttribute('onclick')?.match(/evRpAdd\('(\w+)'\)/)?.[1];
+    if(!id)return;
+    const canAdd=getP(id)<=remaining;
+    chip.style.opacity=canAdd?'1':'0.4';
+    chip.style.pointerEvents=canAdd?'auto':'none';
+  });
+  // 도시락 항목의 + 버튼도 비활성화
+  document.querySelectorAll('#evRpItemList .rp-plus').forEach(btn=>{
+    const row=btn.closest('.rp-row');
+    if(!row)return;
+    const onclick=btn.getAttribute('onclick')||'';
+    const id=onclick.match(/evRpChangeQty\('(\w+)'/)?.[1];
+    if(!id)return;
+    const canAdd=getP(id)<=remaining;
+    btn.style.opacity=canAdd?'1':'0.35';
+    btn.style.pointerEvents=canAdd?'auto':'none';
+  });
 }
 function updateEvRpTotal(){
   const cur=calcUsed(),delta=cur-_rpBase;
   const t=document.getElementById('evRpTotal');
   const d=document.getElementById('evRpDelta');
-  if(t)t.textContent=cur.toLocaleString()+'원';
+  if(t){t.textContent=cur.toLocaleString()+'원';t.style.color=cur>totalBudget()?'#E74C3C':'var(--a4)';}
   if(d){
     if(delta>0){d.textContent='+'+delta.toLocaleString()+'원';d.style.color='#E74C3C';}
     else if(delta<0){d.textContent=delta.toLocaleString()+'원';d.style.color='#27AE60';}
     else{d.textContent='±0원';d.style.color='#aaa';}
+  }
+  // 완료 버튼 — 예산 초과 시 비활성화
+  const doneBtn=document.querySelector('#evBagEdit .btn.bp');
+  if(doneBtn){
+    const over=cur>totalBudget();
+    doneBtn.disabled=over;
+    doneBtn.textContent=over?'⚠️ 예산 초과! 항목을 빼주세요':'✅ 정리 완료! 다음으로 →';
+    doneBtn.style.background=over?'#ccc':'';
   }
 }
 
@@ -864,7 +939,7 @@ function rpRemove(){}
 function showSavings(){
   go('s-savings');
   const bagCost=(()=>{let s=0;G.bag.forEach((qty,id)=>s+=getP(id)*qty);return s;})();
-  const totalSpend=bagCost+G.extraSpend;          // 실제 쓴 돈
+  const totalSpend=bagCost+G.extraSpend+(G.umbrellaSpend||0)+(G.friendBag||0);          // 실제 쓴 돈
   const remaining=BASE_BUDGET+G.bonus-totalSpend; // 진짜 남은 돈
   const rows=(()=>{let r='';G.bag.forEach((qty,id)=>{const f=getF(id),p=getP(id);r+=`<div class="fl-row"><span>${f.e} ${f.name}${qty>1?` ×${qty}`:''}</span><span>${(p*qty).toLocaleString()}원</span></div>`;});return r;})();
   document.getElementById('savCard').innerHTML=`
@@ -878,6 +953,7 @@ function showSavings(){
       ${rows||'<div class="fl-row"><span>담은 음식 없음</span><span>-</span></div>'}
       ${G.extraSpend>0?`<div class="fl-row"><span>🛍 도시락통 빌리기</span><span>${G.extraSpend.toLocaleString()}원</span></div>`:''}
       ${G.umbrellaSpend>0?`<div class="fl-row"><span>☔ 우산</span><span>${G.umbrellaSpend.toLocaleString()}원</span></div>`:''}
+      ${G.friendBag>0?`<div class="fl-row"><span>🍙 짝꿍 김밥</span><span>${G.friendBag.toLocaleString()}원</span></div>`:''}
       <hr class="fl-div">
       <div class="fl-row"><span class="fl-total">총 사용 금액</span><span class="fl-total">${totalSpend.toLocaleString()}원</span></div>
     </div>
@@ -991,7 +1067,7 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),2400);
 }
 function resetGame(){
-  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,choices:[],evIdx:0,evLogs:[]};
+  G={likeRank:FOODS.map(f=>f.id),needRank:FOODS.map(f=>f.id),bag:new Map(),prices:{},saved:0,social:0,bonus:0,extraSpend:0,umbrellaSpend:0,friendBag:0,choices:[],evIdx:0,evLogs:[]};
   buildDrag('likeList',G.likeRank);
   buildDrag('needList',G.needRank);
   renderShopGrid('menuGrid','mc_',updateBag);
